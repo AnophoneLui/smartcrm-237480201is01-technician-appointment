@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Giới thiệu, phạm vi và thuật ngữ
+## 1. Giới thiệu và phạm vi doanh nghiệp
 
 ### 1.1 Bối cảnh doanh nghiệp
 
@@ -188,4 +188,4 @@ File gốc: `docs/diagrams/use-case-diagram.drawio`.
 | FR5 | US6 | UC5 | MUST |
 | FR6 | US7, US8 | UC6 | SHOULD |
 | FR7 | US9 | UC7 | SHOULD |
-| FR8 | US10 | UC8 | COULD |
+| FR8 | US10 | UC9 | COULD |
