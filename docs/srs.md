@@ -1,7 +1,7 @@
 # SRS rút gọn – Smart CRM Mekong Mobile: Luồng "Phân công kỹ thuật viên và lịch hẹn"
 
 - Sinh viên: LUIBOUATHONG ANOPHONE – MSSV 237480201IS01
-- Môn: Chuyên đề tốt nghiệp 1 – Bài tập 1 (BT1)
+- Môn: Chuyên đề tốt nghiệp 1 – Báo cáo buổi 4
 - Track: SE
 
 ---
