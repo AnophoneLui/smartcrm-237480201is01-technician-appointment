@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="5lQoPerpCWwfDgJezuJ-">
+    <mxGraphModel dx="514" dy="771" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Verdana;" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;Frontend (React)&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Giao diện người dùng&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="240" x="240" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-2" edge="1" parent="1" source="i1bXDZn-vWxAOuFpEHAe-1" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontFamily=Verdana;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="200" y="310" as="sourcePoint" />
+            <mxPoint x="360" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fontFamily=Verdana;" value="" vertex="1">
+          <mxGeometry height="320" width="400" x="160" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fontFamily=Verdana;fontSize=14;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Assignment Service" vertex="1">
+          <mxGeometry height="60" width="320" x="200" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fontFamily=Verdana;fontSize=14;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Ticket Service" vertex="1">
+          <mxGeometry height="60" width="320" x="200" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fontFamily=Verdana;fontSize=14;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Appointment Service" vertex="1">
+          <mxGeometry height="60" width="320" x="200" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-7" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontFamily=Verdana;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="359.5" y="560" as="sourcePoint" />
+            <mxPoint x="359.5" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Verdana;fontSize=14;" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;div&gt;ticket, technician, appointment,...&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="320" x="200" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=14;fontStyle=1;fontFamily=Verdana;" value="Backend API (Node.js/ Express)" vertex="1">
+          <mxGeometry height="30" width="270" x="200" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=14;fontFamily=Verdana;" value="gọi API (REST/JSON)" vertex="1">
+          <mxGeometry height="30" width="160" x="380" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=14;fontFamily=Verdana;" value="truy vẩn SQL" vertex="1">
+          <mxGeometry height="30" width="150" x="380" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="i1bXDZn-vWxAOuFpEHAe-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=14;fontFamily=Verdana;" value="Ngoài phạm vi: xác thực SSO, hàng đợi thông báo, container hoá" vertex="1">
+          <mxGeometry height="30" width="465" x="127.5" y="735" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
