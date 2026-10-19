@@ -1,32 +1,30 @@
-# Hợp đồng API — Luồng L4: Phân công kỹ thuật viên và lịch hẹn
+# Hợp đồng API – Luồng L4: Phân công kỹ thuật viên và lịch hẹn
 
-## 1. Danh sách endpoint
+## Module Sprint 1 – CRUD phiếu bảo hành
+| Phương thức | Đường dẫn | Mục đích |
+|---|---|---|
+| GET | `/health` | Kiểm tra server hoạt động |
+| GET | `/api/tickets?status=&center_id=&limit=&offset=` | Danh sách phiếu, có lọc và phân trang |
+| GET | `/api/tickets/{id}` | Chi tiết một phiếu |
+| POST | `/api/tickets` | Tạo phiếu |
+| PUT | `/api/tickets/{id}` | Cập nhật phiếu |
+| DELETE | `/api/tickets/{id}` | Xóa mềm phiếu |
 
-| Phương thức | Đường dẫn | Mục đích | User Story |
-|---|---|---|---|
-| GET | `/api/tickets?status=&center_id=&technician_id=` | Lấy danh sách phiếu, có lọc theo trạng thái và phân trang | US1, US2 |
-| GET | `/api/tickets/{id}/technician-suggestions` | Lấy danh sách kỹ thuật viên gợi ý phù hợp với phiếu | US3, US4 |
-| PATCH | `/api/tickets/{id}/assign` | Phân công hoặc đổi kỹ thuật viên cho phiếu | US3, US5 |
-| PATCH | `/api/tickets/{id}/status` | Chuyển trạng thái phiếu | US6 |
-| POST | `/api/appointments` | Đặt lịch hẹn giao–nhận máy | US7, US8 |
-| PATCH | `/api/tickets/{id}/close` | Xác nhận khách nhận máy và đóng phiếu | US9 |
-| GET | `/api/centers/{id}/overview` | Lấy số liệu tổng quan trung tâm | US10 |
+## Quy ước
+- Request/response dùng JSON, UTF-8.
+- Trường dữ liệu dùng `snake_case`.
+- `limit` mặc định 20, tối đa 100; `offset` mặc định 0.
+- Phiếu đã xóa mềm (`is_deleted=true`) không xuất hiện trong danh sách và không được truy cập qua endpoint chi tiết.
+- Các endpoint gợi ý kỹ thuật viên, phân công/đổi phân công, cập nhật trạng thái, lịch hẹn và đóng phiếu thuộc phạm vi L4 tổng thể nhưng chưa được hiện thực trong module CRUD Sprint 1 này.
 
-## 2. Quy ước chung
-
-- Định dạng trao đổi: JSON, mã hóa UTF-8.
-- Header bắt buộc: `Content-Type: application/json`.
-- Tên trường dùng `snake_case`, khớp với tên cột trong cơ sở dữ liệu.
-- Thời gian dùng chuẩn ISO 8601 kèm múi giờ, ví dụ:
-  `2026-10-10T14:00:00+07:00`.
-- Phân trang sử dụng tham số `page` (bắt đầu từ 1) và `size` (mặc định 20, tối đa 100). Response kèm `total`.
-- Mọi lỗi trả về cùng cấu trúc:
-
+## Ví dụ tạo phiếu
 ```json
 {
-  "error": {
-    "code": "...",
-    "message": "...",
-    "fields": {}
-  }
+  "ticket_code": "MM-NEW-001",
+  "center_id": 1,
+  "category_id": 1,
+  "priority": "HIGH",
+  "status": "NEW",
+  "due_date": "2026-11-01T10:00:00"
 }
+```

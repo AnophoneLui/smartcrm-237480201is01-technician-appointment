@@ -1,0 +1,21 @@
+{
+  "name": "smartcrm-technician-appointment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart CRM - Luồng L4: Phân công kỹ thuật viên và lịch hẹn",
+  "main": "src/backend/server.js",
+  "scripts": {
+    "start": "node src/backend/server.js",
+    "dev": "node --watch src/backend/server.js",
+    "db:migrate": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f src/backend/db/migrations/001_initial_schema.sql",
+    "db:seed": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f src/backend/db/seed/001_seed.sql",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
