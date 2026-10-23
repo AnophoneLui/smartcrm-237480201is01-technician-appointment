@@ -1,43 +1,37 @@
 const express = require("express");
-const service = require("../services/ticket.service");
+const { AppError } = require("../errors");
+const { createTicketService } = require("../services/ticket.service");
+const service = createTicketService(require("../repositories/ticket.repository"));
 
 const router = express.Router();
 
+// Một định dạng lỗi cho toàn API: { error, message, fields? }
 function handleError(res, error) {
-  const status = error.status || (error.code === "23505" ? 409 : error.code === "23503" ? 400 : 500);
-  const message = error.code === "23505"
-    ? "ticket_code đã tồn tại"
-    : error.code === "23503"
-      ? "center_id hoặc category_id không tồn tại"
-      : error.message || "Lỗi máy chủ";
-  return res.status(status).json({
-    error: { message, details: error.details || undefined }
-  });
+  if (error instanceof AppError) {
+    return res.status(error.status).json({ error: error.code, message: error.message, fields: error.fields });
+  }
+  if (error.code === "23505") return res.status(409).json({ error: "TRUNG_MA_PHIEU", message: "Mã phiếu đã tồn tại" });
+  if (error.code === "23503") {
+    return res.status(422).json({ error: "THAM_CHIEU_KHONG_TON_TAI", message: "Trung tâm hoặc nhóm sự cố không tồn tại" });
+  }
+  // Lỗi không lường trước: chi tiết kỹ thuật chỉ ghi log, người dùng chỉ thấy mã tra cứu
+  const maTraCuu = Date.now().toString(36).toUpperCase();
+  console.error(`[${maTraCuu}]`, error);
+  return res.status(500).json({ error: "LOI_HE_THONG", message: "Hệ thống đang gặp sự cố. Vui lòng thử lại.", maTraCuu });
 }
 
-router.get("/", async (req, res) => {
-  try { res.json({ data: await service.list(req.query) }); }
-  catch (error) { handleError(res, error); }
-});
+const wrap = (fn, status = 200) => (req, res) =>
+  fn(req).then((data) => res.status(status).json({ data })).catch((e) => handleError(res, e));
 
-router.get("/:id", async (req, res) => {
-  try { res.json({ data: await service.get(req.params.id) }); }
-  catch (error) { handleError(res, error); }
-});
-
-router.post("/", async (req, res) => {
-  try { res.status(201).json({ data: await service.create(req.body) }); }
-  catch (error) { handleError(res, error); }
-});
-
-router.put("/:id", async (req, res) => {
-  try { res.json({ data: await service.update(req.params.id, req.body) }); }
-  catch (error) { handleError(res, error); }
-});
-
-router.delete("/:id", async (req, res) => {
-  try { res.json({ data: await service.remove(req.params.id) }); }
-  catch (error) { handleError(res, error); }
-});
+router.get("/", wrap((req) => service.list(req.query)));
+router.get("/:id", wrap((req) => service.get(req.params.id)));
+router.get("/:id/suggestions", wrap((req) => service.suggest(req.params.id)));
+router.patch("/:id/technician", wrap((req) => service.assign(req.params.id, req.body)));
+router.get("/:id/appointments", wrap((req) => service.listAppointments(req.params.id)));
+router.post("/:id/appointments", wrap((req) => service.createAppointment(req.params.id, req.body), 201));
+router.put("/:id/appointments/current", wrap((req) => service.changeAppointment(req.params.id, req.body)));
+router.post("/", wrap((req) => service.create(req.body), 201));
+router.put("/:id", wrap((req) => service.update(req.params.id, req.body)));
+router.delete("/:id", wrap((req) => service.remove(req.params.id)));
 
 module.exports = router;

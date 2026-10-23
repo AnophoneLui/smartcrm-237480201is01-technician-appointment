@@ -44,3 +44,23 @@
 - **Quyết định:** SỬA.
 - **Lý do:** Giữ dữ liệu để truy vết; đánh dấu `is_deleted`.
 - **Ảnh hưởng:** Cột `ticket.is_deleted` và endpoint DELETE.
+
+## Điều chỉnh trong Sprint 2 (Buổi 9–10)
+> Ghi ngày thực hiện thực tế: ____/____/2026
+
+### TD-08 – Hợp đồng dữ liệu tường minh ở ranh giới service → API
+- **Quyết định:** SỬA. Thêm `ticket.contract.js` (toTicketView…), đổi phản hồi sang `camelCase`, thống nhất lỗi `{error, message, fields}`, dữ liệu sai trả 422.
+- **Lý do:** Giao diện không được đọc tên cột bảng; đổi tên cột chỉ phải sửa một chỗ. Sửa luôn lỗi Sprint 1: `create/update` gọi `validateTicket` nhưng bỏ qua kết quả nên dữ liệu sai lọt xuống CSDL.
+- **Ảnh hưởng:** `docs/api-contract.md`, service, routes, test.
+
+### TD-09 – Thêm `technician.full_name`
+- **Quyết định:** SỬA (migration 002). **Lý do:** Giao diện cần hiển thị tên kỹ thuật viên; ERD BT1 chưa có cột tên. **Ảnh hưởng:** bảng `technician`, seed 002.
+
+### TD-10 – Hoãn đăng nhập/phân quyền
+- **Quyết định:** HOÃN (cắt phạm vi). **Lý do:** Ưu tiên luồng chính, ba trạng thái, test và README. Hạn chế: log ghi `changed_by = 1`; QT-14 (chỉ xem trung tâm mình) và QT-15 (che số điện thoại) chưa thi hành. **Kế hoạch:** làm ở sprint sau nếu còn thời gian.
+
+### TD-11 – Giả định khung lịch hẹn 60 phút
+- **Quyết định:** GIẢ ĐỊNH. SRS chưa nêu thời lượng một lịch hẹn; hai lịch của cùng một kỹ thuật viên cách nhau dưới 60 phút bị coi là trùng (FR6). **Cần xác nhận lại với GVHD/nghiệp vụ.**
+
+### TD-12 – Giao diện dùng Vue 3 qua CDN, không dùng bước build
+- **Quyết định:** GIỮ ĐƠN GIẢN. **Lý do:** Không cần cài thêm công cụ build, backend phục vụ trực tiếp `src/frontend`, giảm rủi ro khi người khác clone và chạy. **Hạn chế:** cần Internet để tải Vue; chưa dùng single-file component.
