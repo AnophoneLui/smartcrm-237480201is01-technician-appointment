@@ -28,12 +28,56 @@
 | TC-06 | PATCH phân công phiếu đã ASSIGNED | 409 `PHIEU_DA_THAY_DOI` | ☐ |
 
 ## 4. Unit test
-Lệnh `npm test` (Node test runner, không cần CSDL): 16 test, gồm luồng đúng, giá trị biên, dữ liệu sai và test hợp đồng.
-Số liệu lúc soạn (chạy trong môi trường không có CSDL): tổng 16, pass 16, fail 0.
-Số liệu trên máy của tôi: tổng ___, pass ___, fail ___ (dán ảnh `docs/npm-test.png`).
+Công cụ: Node.js Test Runner (`node --test`).
+Lệnh thực hiện: `npm test`.
+Kết quả thực tế ngày 29/10/2026:
+- Tổng số test: 23
+- Thành công: 23
+- Thất bại: 0
+- Bỏ qua: 0
+Các nhóm kiểm thử:
+- Kiểm tra hợp đồng dữ liệu API.
+- Kiểm tra tạo phiếu và dữ liệu không hợp lệ.
+- Kiểm tra phân công kỹ thuật viên theo QT-08.
+- Kiểm tra quy tắc đặt lịch và trùng lịch.
+- Kiểm tra hủy lịch thành công.
+- Kiểm tra hủy lịch không tồn tại (HTTP 404).
+Kết luận: PASS (23/23).
+Bằng chứng: `docs/npm-test.png`.
 
 ## 5. Kiểm tra clone mới (README mục 3)
 ☐ Đã clone vào thư mục mới và làm đúng từng bước README. Bước nào thiếu/sai: ______________________
 
 ## 6. Ghi chú lỗi
 - Lỗi gặp: ______  · Cách xử lý: ______  · Kết quả: ______
+
+## 7. Kiểm thử API hủy lịch hẹn
+Môi trường: PostgreSQL `smartcrm_clone_test`, API localhost:3001.
+| Mã | Trường hợp | Kết quả thực tế | Đánh giá |
+|---|---|---|---|
+| TC-07 | DELETE khi không có lịch hẹn đang hoạt động | HTTP 404, `KHONG_CO_LICH_HEN` | PASS |
+| TC-08 | DELETE lịch hẹn hợp lệ | HTTP 200, `cancelled: true` | PASS |
+| TC-09 | Kiểm tra dữ liệu sau khi hủy | `appointment_id = 1`, `is_active = false` | PASS |
+Kết luận: Chức năng hủy lịch hẹn hoạt động đúng trên dữ liệu thử nghiệm.
+
+## 8. Kiểm thử Migration và Seed
+Môi trường: PostgreSQL `smartcrm_clone_test`.
+
+### 8.1. Migration
+Chạy lại `npm run db:migrate` trên database thử nghiệm.
+Kết quả:
+- `001_initial_schema.sql`: OK
+- `002_technician_name.sql`: OK
+- `003_one_active_appointment.sql`: OK
+- Lịch hẹn đã hủy vẫn giữ `is_active = false`.
+Đánh giá: PASS.
+
+### 8.2. Seed
+Chạy `npm run db:seed` hai lần trên database thử nghiệm.
+| Bảng | Trước Seed | Sau 2 lần Seed |
+|---|---:|---:|
+| technician | 4 | 4 |
+| ticket | 8 | 8 |
+| technician_skill | 6 | 6 |
+| appointment | 1 | 1 |
+Kết luận: Không phát sinh thêm bản ghi trong lần kiểm thử. PASS.

@@ -64,3 +64,15 @@
 
 ### TD-12 – Giao diện dùng Vue 3 qua CDN, không dùng bước build
 - **Quyết định:** GIỮ ĐƠN GIẢN. **Lý do:** Không cần cài thêm công cụ build, backend phục vụ trực tiếp `src/frontend`, giảm rủi ro khi người khác clone và chạy. **Hạn chế:** cần Internet để tải Vue; chưa dùng single-file component.
+
+### TD-13 – Bổ sung chức năng hủy lịch hẹn
+- **Quyết định:** BỔ SUNG API DELETE `/api/tickets/:id/appointments/current`.
+- **Lý do:** Hoàn thiện CRUD cho đối tượng Appointment.
+- **Cách xử lý:** Hủy mềm bằng cách cập nhật `is_active = false`, không xóa dữ liệu lịch sử.
+- **Ảnh hưởng:** Routes, Service, Repository và `tests/appointment.cancel.test.js`.
+
+### TD-14 – Đảm bảo Migration chạy lại an toàn
+- **Quyết định:** SỬA migration `003_one_active_appointment.sql`.
+- **Lý do:** Tránh kích hoạt lại lịch hẹn đã hủy khi chạy migration lần nữa.
+- **Cách xử lý:** Chỉ chuẩn hóa dữ liệu khi bổ sung cột `is_active` lần đầu; giữ nguyên trạng thái trong các lần chạy sau.
+- **Kiểm thử:** Migration chạy lại thành công, lịch đã hủy vẫn có `is_active = false`.

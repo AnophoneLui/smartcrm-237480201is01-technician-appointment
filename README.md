@@ -1,79 +1,297 @@
-# Smart CRM – Luồng L4: Phân công kỹ thuật viên và lịch hẹn
 
-SV: Luibouathong Anophone · MSSV 237480201IS01 · Track SE
+# Smart CRM – L4: Phân công kỹ thuật viên và lịch hẹn
 
-## 1. Mục tiêu
-Module mở rộng (Sprint 2): giao diện Vue 3 màn hình gọi API thật, luồng chính UC3
-(chọn phiếu → xem gợi ý kỹ thuật viên → phân công → ghi log) chạy end-to-end cục bộ.
-Kiến trúc: giao diện → client API → routes → service → repository → PostgreSQL.
+**Sinh viên:** Luibouathong Anophone  
+**MSSV:** 237480201IS01 · **Track:** SE
+
+## 1. Giới thiệu
+
+Module L4 thuộc hệ thống Smart CRM của Mekong Mobile, hỗ trợ quản lý phiếu dịch vụ, gợi ý và phân công kỹ thuật viên, đặt lịch hẹn và kiểm tra trùng lịch.
+
+**Chức năng chính:**
+- CRUD Ticket: tạo, xem, cập nhật và xóa mềm phiếu.
+- CRUD Appointment: tạo, xem, đổi lịch và hủy mềm lịch hẹn.
+- Gợi ý kỹ thuật viên theo kỹ năng và số phiếu đang xử lý.
+- Phân công kỹ thuật viên, ghi log và kiểm tra quy tắc nghiệp vụ.
+- Giao diện 3 màn hình kết nối API, có trạng thái Loading/Empty/Error.
+
+**Kiến trúc:** Frontend → API Routes → Service → Repository → PostgreSQL.
+
+**Công nghệ:** Node.js, Express, PostgreSQL, HTML/CSS/JavaScript, Vue 3.
 
 ## 2. Yêu cầu môi trường
-Node.js ≥ 20 · npm · PostgreSQL 15/16 đang chạy · Git · trình duyệt có Internet (tải Vue từ CDN jsDelivr).
 
-## 3. Dựng hệ thống (mỗi bước một lệnh)
-1. `git clone https://github.com/AnophoneLui/smartcrm-237480201is01-technician-appointment.git`
-2. `cd smartcrm-237480201is01-technician-appointment`
-3. `npm install`
-4. `cp .env.example .env` (Windows: `copy .env.example .env`) rồi mở `.env` sửa mật khẩu trong `DATABASE_URL`
-5. Tạo database: `createdb smartcrm` (hoặc tạo CSDL tên `smartcrm` bằng pgAdmin)
-6. `npm run db:migrate`
-7. `npm run db:seed`
-8. `npm test` → kỳ vọng: `# pass 21`, `# fail 0`
-9. `npm run dev` → mở http://localhost:3000
+- Node.js ≥ 20 và npm
+- PostgreSQL 15/16
+- Git và trình duyệt có Internet
 
-Lưu ý: giao diện và API cùng cổng 3000 (backend phục vụ thư mục `src/frontend`), nên không cần cấu hình CORS hay địa chỉ API.
-Muốn tách giao diện sang máy chủ khác thì sửa `API_BASE_URL` trong `src/frontend/config.js`.
+## 3. Hướng dẫn cài đặt và chạy
 
-## 4. Luồng chính để thử (dữ liệu mẫu từ seed)
-1. Trang chủ mở sẵn bộ lọc “Chưa phân công” (sắp theo hạn cam kết; MM-DEMO-002 đang quá hạn).
-2. Bấm **Phân công** ở một phiếu → xem gợi ý (ít phiếu nhất ở trên) → chọn → **Xác nhận phân công**.
-3. Hệ thống chuyển phiếu sang “Đã phân công”, ghi `ticket_status_log` và `ticket_assignment_log` trong cùng một transaction.
-4. Ở màn hình chi tiết, đặt lịch hẹn cho phiếu đã phân công.
-   Mỗi phiếu chỉ có một lịch hẹn có hiệu lực.
-   Khi đổi lịch, giờ mới thay thế giờ hiện tại.
-   Nếu kỹ thuật viên có lịch khác trong vòng 60 phút,
-   hệ thống từ chối và trả lỗi 409.
-5. Thử phiếu MM-DEMO-008 (Cần Thơ, chưa có kỹ thuật viên) để thấy luồng ngoại lệ “Không có kỹ thuật viên phù hợp”.
+**Bước 1.** Clone repository:
 
-## 5. Ba trạng thái và cách kiểm tra
-| Trạng thái | Cách tái hiện |
-|---|---|
-| Đang tải | Mở trang: khung “Đang tải dữ liệu…” hiện trong lúc chờ API |
-| Rỗng | Chọn bộ lọc “Hoàn tất” sau khi xóa mềm các phiếu hoàn tất, hoặc mở DB trống: thấy câu giải thích + nút “Xem tất cả phiếu” |
-| Lỗi | Tắt backend (Ctrl+C) rồi bấm bộ lọc khác: thấy thông báo lỗi + nút “Thử lại” |
-
-Kiểm tra lớp gọi API: `grep -rn "fetch(" src/frontend/js/pages src/frontend/js/components` phải trả về rỗng.
-
-## 6. API
-Chi tiết hình dạng, ý nghĩa, hành vi khi sai: xem `docs/api-contract.md`.
-
-| Method | Endpoint | Ý nghĩa |
-|---|---|---|
-| GET | `/health` | Kiểm tra server |
-| GET | `/api/tickets?status=&center_id=&limit=&offset=` | Danh sách phiếu (`status` nhận nhiều giá trị, cách nhau dấu phẩy) |
-| GET | `/api/tickets/:id` | Chi tiết phiếu |
-| GET | `/api/tickets/:id/suggestions` | Gợi ý kỹ thuật viên (FR2) |
-| PATCH | `/api/tickets/:id/technician` | Phân công kỹ thuật viên (FR3) |
-| GET/POST | `/api/tickets/:id/appointments` | Xem / đặt lịch hẹn (FR6) |
-| PUT | `/api/tickets/:id/appointments/current` | Đổi lịch hẹn hiện tại |
-| POST/PUT/DELETE | `/api/tickets[/:id]` | Tạo / sửa / xóa mềm phiếu (Sprint 1) |
-
-Lỗi luôn có dạng `{ "error": "MA_LOI", "message": "...", "fields": { ... } }`; dữ liệu sai trả 422, không trả 500.
-
-## 7. Cấu trúc
-```text
-src/backend/   app.js, server.js, errors.js, config/, routes/, services/ (service + contract + validator), repositories/, db/
-src/frontend/  index.html, config.js, js/api/ (lớp gọi API), js/components/DataState.js, js/pages/ (3 màn hình)
-scripts/run-sql.js   chạy migration/seed (đọc .env, chạy được trên Windows)
-tests/         ticket.service.test.js, ticket.contract.test.js, appointment.rule.test.js
-docs/          srs.md, api-contract.md, thay-doi-thiet-ke.md, ket-qua-kiem-thu.md, ảnh chụp luồng
-docs/screenshots/
-  01-danh-sach-phieu.png
-  02-phan-cong-ky-thuat-vien.png
-  03-chi-tiet-phieu.png
+```bash
+git clone https://github.com/AnophoneLui/smartcrm-237480201is01-technician-appointment.git
+cd smartcrm-237480201is01-technician-appointment
 ```
 
-## 8. Phạm vi và hạn chế (đã ghi ở docs/thay-doi-thiet-ke.md)
-- Chưa có đăng nhập/phân quyền (TD-10): log ghi bằng người dùng mặc định id = 1; QT-14 và QT-15 chưa thi hành.
-- Chưa làm: đổi kỹ thuật viên (FR4), cập nhật trạng thái theo vòng đời (FR5), đóng phiếu (FR7), tổng quan (FR8).
-- Giả định khung lịch hẹn 60 phút (TD-11).
+**Bước 2.** Cài đặt và cấu hình:
+
+```bash
+npm install
+cp .env.example .env
+createdb smartcrm
+```
+
+Chỉnh `DATABASE_URL` trong `.env` cho phù hợp PostgreSQL trên máy. Trên Windows có thể dùng `copy` và tạo database bằng pgAdmin.
+
+**Bước 3.** Khởi tạo dữ liệu:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+**Bước 4.** Chạy kiểm thử và ứng dụng:
+
+```bash
+npm test
+npm run dev
+```
+
+Truy cập: http://localhost:3000
+
+Giao diện và API dùng chung cổng 3000. Không commit file `.env`.
+
+## 4. Chức năng và API
+
+| Method | Endpoint | Chức năng |
+|---|---|---|
+| GET | `/health` | Kiểm tra server |
+| GET/POST | `/api/tickets` | Danh sách / tạo phiếu |
+| GET/PUT/DELETE | `/api/tickets/:id` | Xem / sửa / xóa mềm phiếu |
+| GET | `/api/tickets/:id/suggestions` | Gợi ý kỹ thuật viên |
+| PATCH | `/api/tickets/:id/technician` | Phân công kỹ thuật viên |
+| GET/POST | `/api/tickets/:id/appointments` | Xem / đặt lịch hẹn |
+| PUT | `/api/tickets/:id/appointments/current` | Đổi lịch hẹn |
+| DELETE | `/api/tickets/:id/appointments/current` | Hủy mềm lịch hẹn |
+
+**Quy tắc:** Mỗi phiếu chỉ có một lịch hẹn đang hoạt động; từ chối lịch trùng của cùng kỹ thuật viên trong khoảng 60 phút (HTTP 409). Hủy lịch cập nhật `is_active = false`.
+
+Chi tiết API: `docs/api-contract.md`.
+
+## 5. Hướng dẫn sử dụng
+
+1. Mở danh sách phiếu và lọc theo trạng thái.
+2. Chọn **Phân công** → xem gợi ý → chọn kỹ thuật viên → xác nhận.
+3. Mở chi tiết phiếu để xem và đặt lịch hẹn.
+4. Kiểm tra cảnh báo khi kỹ thuật viên bị trùng lịch.
+5. Thử phiếu `MM-DEMO-008` để xem trường hợp không có kỹ thuật viên phù hợp.
+
+Giao diện hỗ trợ trạng thái **Loading, Empty, Error**.
+
+## 6. Kiểm thử
+
+Chạy `npm test` bằng Node.js Test Runner.
+
+**Kết quả đã kiểm tra: 23 PASS / 23 test, 0 FAIL.**
+
+- Kiểm thử dữ liệu hợp lệ, không hợp lệ và giá trị biên.
+- Kiểm thử phân công, đặt lịch, trùng lịch và hủy lịch.
+- API DELETE: thành công HTTP 200; không có lịch hoạt động HTTP 404.
+- Migration chạy lại không kích hoạt lịch đã hủy.
+- Seed chạy 2 lần không tạo thêm bản ghi trên database thử nghiệm.
+
+Chi tiết: `docs/ket-qua-kiem-thu.md`.
+
+## 7. Cấu trúc dự án
+
+```text
+src/
+  backend/
+    routes/          # Định nghĩa API
+    services/        # Xử lý nghiệp vụ
+    repositories/    # Truy vấn PostgreSQL
+    db/              # Migration và Seed
+  frontend/          # Giao diện 3 màn hình
+scripts/             # Công cụ chạy SQL
+tests/               # 4 file kiểm thử
+docs/                # SRS, API, thiết kế, kiểm thử
+README.md
+.env.example
+package.json
+```
+
+## 8. Phạm vi và hạn chế
+
+- Chưa có đăng nhập và phân quyền; log dùng người dùng mặc định.
+- Chưa triển khai đầy đủ FR4, FR5, FR7, FR8.
+- Chức năng hủy lịch đã có API backend, chưa xác nhận nút hủy trên giao diện.
+- Khung lịch hẹn giả định là 60 phút.
+
+Chi tiết thay đổi thiết kế: `docs/thay-doi-thiet-ke.md`.
+
+# Smart CRM – L4: Phân công kỹ thuật viên và lịch hẹn
+
+**Sinh viên:** Luibouathong Anophone  
+**MSSV:** 237480201IS01 · **Track:** SE
+
+## 1. Giới thiệu
+
+Module L4 thuộc hệ thống Smart CRM của Mekong Mobile, hỗ trợ quản lý phiếu dịch vụ, gợi ý và phân công kỹ thuật viên, đặt lịch hẹn và kiểm tra trùng lịch.
+
+**Chức năng chính:**
+- CRUD Ticket: tạo, xem, cập nhật và xóa mềm phiếu.
+- CRUD Appointment: tạo, xem, đổi lịch và hủy mềm lịch hẹn.
+- Gợi ý kỹ thuật viên theo kỹ năng và số phiếu đang xử lý.
+- Phân công kỹ thuật viên, ghi log và kiểm tra quy tắc nghiệp vụ.
+- Giao diện 3 màn hình kết nối API, có trạng thái Loading/Empty/Error.
+
+**Kiến trúc:** Frontend → API Routes → Service → Repository → PostgreSQL.
+
+**Công nghệ:** Node.js, Express, PostgreSQL, HTML/CSS/JavaScript, Vue 3.
+
+## 2. Yêu cầu môi trường
+
+- Node.js ≥ 20 và npm
+- PostgreSQL 15/16
+- Git và trình duyệt có Internet
+
+## 3. Hướng dẫn cài đặt và chạy
+
+**Bước 1.** Clone repository:
+
+```bash
+git clone https://github.com/AnophoneLui/smartcrm-237480201is01-technician-appointment.git
+cd smartcrm-237480201is01-technician-appointment
+```
+
+**Bước 2.** Cài đặt và cấu hình:
+
+```bash
+npm install
+cp .env.example .env
+createdb smartcrm
+```
+
+Chỉnh `DATABASE_URL` trong `.env` cho phù hợp PostgreSQL trên máy. Trên Windows có thể dùng `copy` và tạo database bằng pgAdmin.
+
+**Bước 3.** Khởi tạo dữ liệu:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+**Bước 4.** Chạy kiểm thử và ứng dụng:
+
+```bash
+npm test
+npm run dev
+```
+
+Truy cập: http://localhost:3000
+
+Giao diện và API dùng chung cổng 3000. Không commit file `.env`.
+
+## 4. Chức năng và API
+
+| Method | Endpoint | Chức năng |
+|---|---|---|
+| GET | `/health` | Kiểm tra server |
+| GET/POST | `/api/tickets` | Danh sách / tạo phiếu |
+| GET/PUT/DELETE | `/api/tickets/:id` | Xem / sửa / xóa mềm phiếu |
+| GET | `/api/tickets/:id/suggestions` | Gợi ý kỹ thuật viên |
+| PATCH | `/api/tickets/:id/technician` | Phân công kỹ thuật viên |
+| GET/POST | `/api/tickets/:id/appointments` | Xem / đặt lịch hẹn |
+| PUT | `/api/tickets/:id/appointments/current` | Đổi lịch hẹn |
+| DELETE | `/api/tickets/:id/appointments/current` | Hủy mềm lịch hẹn |
+
+**Quy tắc:** Mỗi phiếu chỉ có một lịch hẹn đang hoạt động; từ chối lịch trùng của cùng kỹ thuật viên trong khoảng 60 phút (HTTP 409). Hủy lịch cập nhật `is_active = false`.
+
+Chi tiết API: `docs/api-contract.md`.
+
+## 5. Hướng dẫn sử dụng
+
+1. Mở danh sách phiếu và lọc theo trạng thái.
+2. Chọn **Phân công** → xem gợi ý → chọn kỹ thuật viên → xác nhận.
+3. Mở chi tiết phiếu để xem và đặt lịch hẹn.
+4. Kiểm tra cảnh báo khi kỹ thuật viên bị trùng lịch.
+5. Thử phiếu `MM-DEMO-008` để xem trường hợp không có kỹ thuật viên phù hợp.
+
+Giao diện hỗ trợ trạng thái **Loading, Empty, Error**.
+
+## 6. Kiểm thử
+
+Chạy `npm test` bằng Node.js Test Runner.
+
+**Kết quả đã kiểm tra: 23 PASS / 23 test, 0 FAIL.**
+
+- Kiểm thử dữ liệu hợp lệ, không hợp lệ và giá trị biên.
+- Kiểm thử phân công, đặt lịch, trùng lịch và hủy lịch.
+- API DELETE: thành công HTTP 200; không có lịch hoạt động HTTP 404.
+- Migration chạy lại không kích hoạt lịch đã hủy.
+- Seed chạy 2 lần không tạo thêm bản ghi trên database thử nghiệm.
+
+Chi tiết: `docs/ket-qua-kiem-thu.md`.
+
+## 7. Cấu trúc dự án
+
+
+```text
+src/
+├── backend/
+│   ├── app.js
+│   ├── server.js
+│   ├── errors.js
+│   ├── config/
+│   ├── routes/
+│   ├── services/
+│   ├── repositories/
+│   └── db/
+│       ├── migrations/
+│       └── seed/
+│
+└── frontend/
+    ├── index.html
+    ├── config.js
+    └── js/
+        ├── api/
+        ├── components/
+        └── pages/
+
+scripts/
+└── run-sql.js
+
+tests/
+├── ticket.service.test.js
+├── ticket.contract.test.js
+├── appointment.rule.test.js
+└── appointment.cancel.test.js
+
+docs/
+├── srs.md
+├── api-contract.md
+├── thay-doi-thiet-ke.md
+├── ket-qua-kiem-thu.md
+└── screenshots/
+    ├── 01-danh-sach-phieu.png
+    ├── 02-phan-cong-ky-thuat-vien.png
+    └── 03-chi-tiet-phieu.png
+```
+
+- `routes/`: định nghĩa endpoint và tiếp nhận HTTP request.
+- `services/`: xử lý nghiệp vụ và kiểm tra quy tắc.
+- `repositories/`: truy vấn và cập nhật PostgreSQL.
+- `db/migrations/`: quản lý thay đổi cấu trúc database.
+- `db/seed/`: tạo dữ liệu mẫu.
+- `scripts/run-sql.js`: chạy migration/seed, đọc `.env`, hỗ trợ Windows.
+- `tests/`: các bài kiểm thử tự động.
+
+## 8. Phạm vi và hạn chế
+
+- Chưa có đăng nhập và phân quyền; log dùng người dùng mặc định.
+- Chưa triển khai đầy đủ FR4, FR5, FR7, FR8.
+- Chức năng hủy lịch đã có API backend, chưa xác nhận nút hủy trên giao diện.
+- Khung lịch hẹn giả định là 60 phút.
+
+Chi tiết thay đổi thiết kế: `docs/thay-doi-thiet-ke.md`.
