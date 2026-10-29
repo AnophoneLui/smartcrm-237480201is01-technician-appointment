@@ -21,15 +21,36 @@ Frontend rẽ nhánh theo `error`, không theo câu chữ của `message`.
 **Lịch hẹn**: `appointmentId`, `ticketId`, `kyThuatVienId`, `gioHen` (ISO 8601).
 
 ## Endpoint
+
 | Method | Đường dẫn | Thành công | Hành vi khi sai |
 |---|---|---|---|
-| GET | `/api/tickets?status=NEW,ASSIGNED&center_id=&limit=&offset=` | 200 `{data:[Phiếu]}` sắp theo `hanCamKet` tăng dần; **không có phiếu thì `[]`** | status sai → 422 |
-| GET | `/api/tickets/:id` | 200 `{data:Phiếu}` | 404 |
-| GET | `/api/tickets/:id/suggestions` | 200 `{data:[Gợi ý]}` ít phiếu nhất trước; **không ai đủ điều kiện thì `[]`** | 404 |
-| PATCH | `/api/tickets/:id/technician` body `{technicianId, reason?}` | 200 `{data:Phiếu}` (đã ASSIGNED) | thiếu id → 422; KTV không đủ điều kiện (QT-08) → 422; phiếu không còn NEW → 409 |
-| GET | `/api/tickets/:id/appointments` | 200 `{data:[Lịch hẹn]}` | 404 |
-| POST | `/api/tickets/:id/appointments` body `{gioHen}` | 201 `{data:Lịch hẹn}` | giờ sai → 422; chưa phân công → 409; trùng lịch → 409 |
-| POST / PUT / DELETE | `/api/tickets`, `/api/tickets/:id` | 201 / 200 / 200 | dữ liệu sai → 422; trùng mã → 409 |
+| GET | `/api/tickets?status=&center_id=&limit=&offset=` | 200 `{data:[Phiếu]}` | Bộ lọc trạng thái sai → 422 |
+| GET | `/api/tickets/:id` | 200 `{data:Phiếu}` | ID sai → 400; không tìm thấy → 404 |
+| GET | `/api/tickets/:id/suggestions` | 200 `{data:[Gợi ý]}` | Không tìm thấy phiếu → 404 |
+| POST | `/api/tickets` | 201 `{data:Phiếu}` | Dữ liệu sai → 422; mã phiếu trùng → 409 |
+| PUT | `/api/tickets/:id` | 200 `{data:Phiếu}` | Dữ liệu sai → 422; không tìm thấy → 404 |
+| DELETE | `/api/tickets/:id` | 200 `{data:{ticketId, deleted:true}}` | Không tìm thấy → 404 |
+| PATCH | `/api/tickets/:id/technician` | 200 `{data:Phiếu}` | Thiếu KTV hoặc không đủ điều kiện → 422; phiếu không còn NEW → 409 |
+| PUT | `/api/tickets/:id/technician` body `{technicianId, reason}` | 200 `{data:Phiếu}` | Thiếu KTV hoặc lý do sai → 422; chưa phân công, phiếu đã hoàn tất, chọn lại KTV hiện tại hoặc còn lịch hẹn hoạt động → 409; KTV không đủ điều kiện → 422 |
+| PATCH | `/api/tickets/:id/status` body `{status}` | 200 `{data:Phiếu}` | Trạng thái sai → 422; trạng thái không đổi → 409; không tìm thấy phiếu → 404 |
+| GET | `/api/tickets/:id/appointments` | 200 `{data:[Lịch hẹn]}` | Không tìm thấy phiếu → 404 |
+| POST | `/api/tickets/:id/appointments` body `{gioHen}` | 201 `{data:Lịch hẹn}` | Giờ hẹn sai hoặc quá khứ → 422; chưa phân công → 409; trùng lịch → 409 |
+| PUT | `/api/tickets/:id/appointments/current` body `{gioHen}` | 200 `{data:Lịch hẹn}` | Giờ hẹn sai → 422; xung đột lịch hoặc trạng thái → 409 |
+| DELETE | `/api/tickets/:id/appointments/current` | 200 `{data:{appointmentId, cancelled:true}}` | Không có lịch hẹn hoạt động → 404 |
+
+### FR4 – Đổi kỹ thuật viên
+
+- Yêu cầu kỹ thuật viên mới cùng trung tâm, có kỹ năng phù hợp và tay nghề từ 3 trở lên.
+- Bắt buộc nhập lý do đổi từ 1 đến 255 ký tự.
+- Không cho đổi sang chính kỹ thuật viên hiện tại, đổi khi phiếu đã hoàn tất hoặc đóng, hoặc khi còn lịch hẹn hoạt động.
+- Ghi lịch sử phân công vào `ticket_assignment_log` trong cùng transaction với thao tác cập nhật.
+
+### FR5 – Cập nhật trạng thái phiếu
+
+- Chỉ chấp nhận các trạng thái được định nghĩa trong hợp đồng.
+- Từ chối trạng thái không hợp lệ với HTTP 422.
+- Từ chối cập nhật nếu trạng thái không thay đổi với HTTP 409.
+- Cập nhật trạng thái và ghi lịch sử vào `ticket_status_log` trong cùng transaction.
 
 ## Thay đổi hợp đồng so với Sprint 1 (thay đổi phá vỡ)
 Phản hồi đổi từ `snake_case` + lỗi `{error:{message}}` sang `camelCase` + lỗi `{error, message, fields}`. Đây là thay đổi phá vỡ, được thực hiện khi chưa có bên gọi nào khác ngoài giao diện mới nên không cần giai đoạn song song.

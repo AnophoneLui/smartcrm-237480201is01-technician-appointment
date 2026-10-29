@@ -160,6 +160,145 @@ async function cancelAppointment(ticketId) {
   return result.rows[0] || null;
 }
 
+
+// FR5: Cap nhat trang thai va ghi log trong cung transaction.
+async function updateStatus({ ticketId, status, changedBy }) {
+  const client = await db.getClient();
+  try {
+    await client.query("BEGIN");
+
+    const current = await client.query(
+      `SELECT status FROM ticket
+       WHERE ticket_id = $1 AND is_deleted = false
+       FOR UPDATE`,
+      [ticketId]
+    );
+
+    if (!current.rows[0]) {
+      await client.query("ROLLBACK");
+      return { result: "NOT_FOUND" };
+    }
+
+    const oldStatus = current.rows[0].status;
+
+    if (oldStatus === status) {
+      await client.query("ROLLBACK");
+      return { result: "UNCHANGED" };
+    }
+
+    await client.query(
+      `UPDATE ticket SET status = $2 WHERE ticket_id = $1`,
+      [ticketId, status]
+    );
+
+    await client.query(
+      `INSERT INTO ticket_status_log
+       (ticket_id, from_status, to_status, changed_by)
+       VALUES ($1, $2, $3, $4)`,
+      [ticketId, oldStatus, status, changedBy]
+    );
+
+    await client.query("COMMIT");
+    return { result: "UPDATED" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+
+// FR4: Doi ky thuat vien va ghi log trong cung transaction.
+async function changeTechnician({ ticketId, technicianId, changedBy, reason }) {
+  const client = await db.getClient();
+
+  try {
+    await client.query("BEGIN");
+
+    const current = await client.query(
+      `SELECT technician_id, center_id, category_id, status
+       FROM ticket
+       WHERE ticket_id = $1 AND is_deleted = false
+       FOR UPDATE`,
+      [ticketId]
+    );
+
+    const ticket = current.rows[0];
+
+    if (!ticket) {
+      await client.query("ROLLBACK");
+      return { result: "NOT_FOUND" };
+    }
+
+    if (ticket.technician_id == null) {
+      await client.query("ROLLBACK");
+      return { result: "NOT_ASSIGNED" };
+    }
+
+    if (["COMPLETED", "CLOSED"].includes(ticket.status)) {
+      await client.query("ROLLBACK");
+      return { result: "FINISHED" };
+    }
+
+    if (Number(ticket.technician_id) === technicianId) {
+      await client.query("ROLLBACK");
+      return { result: "SAME_TECHNICIAN" };
+    }
+
+    const eligible = await client.query(
+      `SELECT 1
+       FROM technician te
+       JOIN technician_skill ts
+         ON ts.technician_id = te.technician_id
+       WHERE te.technician_id = $1
+         AND te.center_id = $2
+         AND ts.category_id = $3
+         AND ts.proficiency >= 3
+         AND te.is_active = true`,
+      [technicianId, ticket.center_id, ticket.category_id]
+    );
+
+    if (!eligible.rows.length) {
+      await client.query("ROLLBACK");
+      return { result: "INELIGIBLE" };
+    }
+
+    // Khong doi KTV khi phieu dang co lich hen hoat dong.
+    const appointment = await client.query(
+      `SELECT appointment_id FROM appointment
+       WHERE ticket_id = $1 AND is_active = true
+       LIMIT 1`,
+      [ticketId]
+    );
+
+    if (appointment.rows.length) {
+      await client.query("ROLLBACK");
+      return { result: "ACTIVE_APPOINTMENT" };
+    }
+
+    await client.query(
+      `UPDATE ticket SET technician_id = $2 WHERE ticket_id = $1`,
+      [ticketId, technicianId]
+    );
+
+    await client.query(
+      `INSERT INTO ticket_assignment_log
+       (ticket_id, from_technician_id, to_technician_id, reason, changed_by)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [ticketId, ticket.technician_id, technicianId, reason, changedBy]
+    );
+
+    await client.query("COMMIT");
+    return { result: "UPDATED" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   findAll,
   findById,
@@ -168,6 +307,8 @@ module.exports = {
   softDelete,
   findSuggestions,
   assignTechnician,
+  changeTechnician,
+  updateStatus,
   findAppointmentsByTicket,
   saveAppointment,
   cancelAppointment,

@@ -90,6 +90,15 @@ function createTicketService(repo) {
 
   async function update(id, data = {}) {
     await getRaw(id);
+
+    if (Object.prototype.hasOwnProperty.call(data, "status")) {
+      throw new AppError(
+        422,
+        "CAP_NHAT_TRANG_THAI_KHONG_HOP_LE",
+        "Không được đổi trạng thái qua API cập nhật phiếu thông thường."
+      );
+    }
+
     assertValid(data, { partial: true });
     const row = await repo.update(parseId(id), data);
     if (!row) throw new AppError(404, "KHONG_TIM_THAY_PHIEU", "Không tìm thấy phiếu dịch vụ");
@@ -128,6 +137,79 @@ function createTicketService(repo) {
     });
     if (!ok) throw new AppError(409, "PHIEU_DA_THAY_DOI", "Phiếu vừa được người khác xử lý. Hãy tải lại danh sách.");
     return get(id);
+  }
+
+
+
+  // FR4 / UC5, UC6: Doi ky thuat vien va ghi ly do.
+  async function changeTechnician(id, { technicianId, reason } = {},
+                                  changedBy = DEMO_USER_ID) {
+    const ticketId = parseId(id);
+    const techId = Number(technicianId);
+
+    if (!Number.isInteger(techId) || techId < 1) {
+      throw new AppError(422, "KY_THUAT_VIEN_KHONG_HOP_LE",
+        "Hay chon ky thuat vien hop le.");
+    }
+
+    if (typeof reason !== "string" ||
+        !reason.trim() || reason.trim().length > 255) {
+      throw new AppError(422, "LY_DO_KHONG_HOP_LE",
+        "Ly do doi ky thuat vien phai co tu 1 den 255 ky tu.");
+    }
+
+    const result = await repo.changeTechnician({
+      ticketId,
+      technicianId: techId,
+      reason: reason.trim(),
+      changedBy
+    });
+
+    const errors = {
+      NOT_FOUND: [404, "KHONG_TIM_THAY_PHIEU", "Khong tim thay phieu."],
+      NOT_ASSIGNED: [409, "CHUA_PHAN_CONG", "Phieu chua co ky thuat vien."],
+      FINISHED: [409, "PHIEU_DA_HOAN_TAT", "Khong the doi ky thuat vien cho phieu da hoan tat."],
+      SAME_TECHNICIAN: [409, "TRUNG_KY_THUAT_VIEN", "Ky thuat vien moi trung voi ky thuat vien hien tai."],
+      INELIGIBLE: [422, "KY_THUAT_VIEN_KHONG_DU_DIEU_KIEN",
+        "Ky thuat vien phai cung trung tam va co tay nghe tu 3 tro len."],
+      ACTIVE_APPOINTMENT: [409, "DANG_CO_LICH_HEN",
+        "Hay huy lich hen hien tai truoc khi doi ky thuat vien."]
+    };
+
+    if (errors[result.result]) {
+      throw new AppError(...errors[result.result]);
+    }
+
+    return get(ticketId);
+  }
+
+  // FR5 / UC7: Cap nhat trang thai phieu
+  async function updateStatus(id, { status } = {}, changedBy = DEMO_USER_ID) {
+    const ticketId = parseId(id);
+
+    if (!STATUSES.has(status)) {
+      throw new AppError(
+        422,
+        "TRANG_THAI_KHONG_HOP_LE",
+        "Trang thai phieu khong hop le."
+      );
+    }
+
+    const result = await repo.updateStatus({
+      ticketId,
+      status,
+      changedBy
+    });
+
+    if (result.result === "NOT_FOUND") {
+      throw new AppError(404, "KHONG_TIM_THAY_PHIEU", "Khong tim thay phieu dich vu.");
+    }
+
+    if (result.result === "UNCHANGED") {
+      throw new AppError(409, "TRANG_THAI_KHONG_DOI", "Phieu da o trang thai nay.");
+    }
+
+    return get(ticketId);
   }
 
   // FR6 / UC8: Danh sách lịch hẹn
@@ -199,6 +281,8 @@ function createTicketService(repo) {
 
   return {
     list, get, create, update, remove, suggest, assign,
+    changeTechnician,
+    updateStatus,
     listAppointments, createAppointment, changeAppointment, cancelAppointment
   };
 }
