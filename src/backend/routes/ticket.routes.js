@@ -30,6 +30,7 @@ router.patch("/:id/technician", wrap((req) => service.assign(req.params.id, req.
 router.get("/:id/appointments", wrap((req) => service.listAppointments(req.params.id)));
 router.post("/:id/appointments", wrap((req) => service.createAppointment(req.params.id, req.body), 201));
 router.put("/:id/appointments/current", wrap((req) => service.changeAppointment(req.params.id, req.body)));
+router.delete("/:id/appointments/current", wrap((req) => service.cancelAppointment(req.params.id)));
 router.post("/", wrap((req) => service.create(req.body), 201));
 router.put("/:id", wrap((req) => service.update(req.params.id, req.body)));
 router.delete("/:id", wrap((req) => service.remove(req.params.id)));

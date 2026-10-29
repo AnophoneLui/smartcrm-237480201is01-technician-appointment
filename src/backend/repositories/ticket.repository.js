@@ -147,8 +147,28 @@ async function saveAppointment({ ticketId, technicianId, gioHen, replace = false
   } catch (e) { await client.query('ROLLBACK'); throw e; }
   finally { client.release(); }
 }
+// Hủy lịch hẹn đang hoạt động nhưng vẫn giữ lịch sử.
+async function cancelAppointment(ticketId) {
+  const result = await db.query(
+    `UPDATE appointment
+     SET is_active = false
+     WHERE ticket_id = $1 AND is_active = true
+     RETURNING appointment_id`,
+    [ticketId]
+  );
+
+  return result.rows[0] || null;
+}
 
 module.exports = {
-  findAll, findById, create, update, softDelete, findSuggestions, assignTechnician,
-  findAppointmentsByTicket, saveAppointment,
+  findAll,
+  findById,
+  create,
+  update,
+  softDelete,
+  findSuggestions,
+  assignTechnician,
+  findAppointmentsByTicket,
+  saveAppointment,
+  cancelAppointment,
 };
