@@ -1,11 +1,28 @@
-# Bảng khai báo sử dụng công cụ AI
+# BẢNG KHAI BÁO SỬ DỤNG CÔNG CỤ AI
 
-| Công cụ | Dùng vào việc gì | Áp dụng ở phần nào | Đã kiểm chứng thế nào |
+**Dự án:** Smart CRM – Mekong Mobile  
+**Luồng:** L4 – Phân công kỹ thuật viên và lịch hẹn  
+**Sinh viên:** LUIBOUATHONG ANOPHONE  
+**MSSV:** 237480201IS01
+
+| Công cụ AI | Mục đích sử dụng | Phạm vi áp dụng | Cách kiểm chứng |
 |---|---|---|---|
-| Claude (Anthropic) | Hỗ trợ phân tích yêu cầu, gợi ý nháp User Story, cấu trúc SRS, đặc tả Use Case, ERD và sơ đồ kiến trúc | Mục 1 (SRS), Mục 2 (Use Case), Mục 3 (Kiến trúc), Mục 4 (ERD) | Tự đối chiếu với case study Smart CRM — Mekong Mobile (Bảng 9.1 quy tắc nghiệp vụ, Mục 6 quy trình thực tế); tự vẽ lại toàn bộ sơ đồ bằng draw.io; tự viết lại wireframe bằng Canva; tự kiểm tra bảng truy vết không còn ô trống và mỗi FR nối được tới ít nhất 1 User Story |
-| Claude (Anthropic) | Hướng dẫn kế hoạch Sprint 2 và soạn bản nháp mã: lớp hợp đồng dữ liệu, service phân công/gợi ý/lịch hẹn, giao diện Vue 3 màn hình, test, tài liệu | Module mở rộng Sprint 2 (backend, frontend, tests, README, docs) | ĐIỀN SAU KHI CHẠY: đã tự chạy `npm test`, chạy luồng end-to-end trên PostgreSQL, thử trạng thái lỗi/rỗng, clone mới theo README và sửa các chỗ không chạy |
+| Claude (Anthropic) | Hỗ trợ phân tích yêu cầu, đề xuất User Story, SRS, Use Case, ERD và kiến trúc | Tài liệu phân tích và thiết kế BT1 | Đối chiếu case study, kiểm tra yêu cầu nghiệp vụ và chỉnh sửa sơ đồ |
+| Claude (Anthropic) | Hỗ trợ xây dựng bản nháp chức năng, giao diện, kiểm thử và tài liệu | Backend, frontend, tests và docs trong Sprint 2 | Kiểm tra mã nguồn, chạy thử và điều chỉnh theo kết quả |
+| ChatGPT (OpenAI) | Hướng dẫn triển khai, kiểm tra lỗi, bổ sung chức năng hủy lịch hẹn, rà soát migration, seed và cập nhật tài liệu | Backend, database, unit test, README và tài liệu BT2 | Chạy `npm test` đạt 23/23 test; kiểm tra API hủy lịch trả 200/404; chạy lại migration và seed trên CSDL kiểm thử |
 
-**Tôi xác nhận đã đọc, hiểu và chịu trách nhiệm về toàn bộ nội dung nộp.**
+## Kết quả kiểm chứng
 
-Họ tên: Luibouathong Anophone — MSSV: 237480201IS01
-Ngày: 07/10/2026
+- Unit Test: 23 PASS, 0 FAIL.
+- Kiểm tra API hủy lịch hẹn thành công và trường hợp không có lịch hẹn.
+- Migration chạy lại thành công trên CSDL kiểm thử.
+- Seed chạy hai lần không phát sinh bản ghi trùng.
+- Mã nguồn và tài liệu được quản lý trên GitHub với tag `v0.2`.
+
+## Cam kết
+
+Tôi xác nhận đã đọc, kiểm tra, hiểu và chịu trách nhiệm về toàn bộ nội dung mã nguồn, tài liệu và kết quả kiểm thử được nộp. Công cụ AI được sử dụng để hỗ trợ, không thay thế trách nhiệm của sinh viên.
+
+**Họ tên:** LUIBOUATHONG ANOPHONE  
+**MSSV:** 237480201IS01  
+**Ngày:** 29/10/2026
