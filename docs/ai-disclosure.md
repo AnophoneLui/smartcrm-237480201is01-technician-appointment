@@ -9,11 +9,11 @@
 |---|---|---|---|
 | Claude (Anthropic) | Hỗ trợ phân tích yêu cầu, đề xuất User Story, SRS, Use Case, ERD và kiến trúc | Tài liệu phân tích và thiết kế BT1 | Đối chiếu case study, kiểm tra yêu cầu nghiệp vụ và chỉnh sửa sơ đồ |
 | Claude (Anthropic) | Hỗ trợ xây dựng bản nháp chức năng, giao diện, kiểm thử và tài liệu | Backend, frontend, tests và docs trong Sprint 2 | Kiểm tra mã nguồn, chạy thử và điều chỉnh theo kết quả |
-| ChatGPT (OpenAI) | Hướng dẫn triển khai, kiểm tra lỗi, bổ sung chức năng hủy lịch hẹn, rà soát migration, seed và cập nhật tài liệu | Backend, database, unit test, README và tài liệu BT2 | Chạy `npm test` đạt 23/23 test; kiểm tra API hủy lịch trả 200/404; chạy lại migration và seed trên CSDL kiểm thử |
+| ChatGPT (OpenAI) | Hướng dẫn triển khai, kiểm tra lỗi, bổ sung chức năng hủy lịch hẹn, rà soát migration, seed và cập nhật tài liệu | Backend, database, unit test, README và tài liệu BT2 | Chạy `npm test` đạt 32/32 test; kiểm tra API hủy lịch trả 200/404; chạy lại migration và seed trên CSDL kiểm thử |
 
 ## Kết quả kiểm chứng
 
-- Unit Test: 23 PASS, 0 FAIL.
+- Unit Test: 32 PASS, 0 FAIL.
 - Kiểm tra API hủy lịch hẹn thành công và trường hợp không có lịch hẹn.
 - Migration chạy lại thành công trên CSDL kiểm thử.
 - Seed chạy hai lần không phát sinh bản ghi trùng.

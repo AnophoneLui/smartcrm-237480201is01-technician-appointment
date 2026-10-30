@@ -30,9 +30,9 @@
 ## 4. Unit test
 Công cụ: Node.js Test Runner (`node --test`).
 Lệnh thực hiện: `npm test`.
-Kết quả thực tế ngày 29/10/2026:
-- Tổng số test: 23
-- Thành công: 23
+Kết quả kiểm thử tự động trên mã nguồn ZIP ngày 30/10/2026:
+- Tổng số test: 32
+- Thành công: 32
 - Thất bại: 0
 - Bỏ qua: 0
 Các nhóm kiểm thử:
@@ -42,7 +42,7 @@ Các nhóm kiểm thử:
 - Kiểm tra quy tắc đặt lịch và trùng lịch.
 - Kiểm tra hủy lịch thành công.
 - Kiểm tra hủy lịch không tồn tại (HTTP 404).
-Kết luận: PASS (23/23).
+Kết luận: PASS (32/32).
 Bằng chứng: `docs/npm-test.png`.
 
 ## 5. Kiểm tra clone mới (README mục 3)

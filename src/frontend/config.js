@@ -1,2 +1,4 @@
-// Địa chỉ API. Để trống = API cùng máy chủ với giao diện (mặc định khi chạy npm run dev).
-window.APP_CONFIG = { API_BASE_URL: "" };
+// API sử dụng cùng địa chỉ với giao diện
+window.APP_CONFIG = {
+  API_BASE_URL: ""
+};

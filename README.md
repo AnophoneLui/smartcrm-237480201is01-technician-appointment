@@ -93,7 +93,7 @@ Giao diện hỗ trợ trạng thái **Loading, Empty, Error**.
 
 Chạy `npm test` bằng Node.js Test Runner.
 
-**Kết quả đã kiểm tra: 23 PASS / 23 test, 0 FAIL.**
+**Kết quả kiểm thử tự động: 32 PASS / 32 test, 0 FAIL.**
 
 - Kiểm thử dữ liệu hợp lệ, không hợp lệ và giá trị biên.
 - Kiểm thử phân công, đặt lịch, trùng lịch và hủy lịch.
@@ -123,10 +123,13 @@ package.json
 
 ## 8. Phạm vi và hạn chế
 
-- Chưa có đăng nhập và phân quyền; log dùng người dùng mặc định.
-- Chưa triển khai đầy đủ FR4, FR5, FR7, FR8.
-- Chức năng hủy lịch đã có API backend, chưa xác nhận nút hủy trên giao diện.
-- Khung lịch hẹn giả định là 60 phút.
+- Hệ thống đã có API tạo, xem, cập nhật và xóa mềm phiếu bảo hành, lịch hẹn.
+- Đã triển khai gợi ý, phân công kỹ thuật viên và kiểm tra trùng lịch hẹn.
+- Chức năng đổi kỹ thuật viên (FR4) và cập nhật trạng thái phiếu (FR5) đã có API; chưa khẳng định hoàn thiện toàn bộ luồng giao diện.
+- Chưa có đăng nhập và phân quyền thực tế theo vai trò/trung tâm; yêu cầu NFR3 chưa được chứng minh đầy đủ.
+- Chưa xác nhận hoàn thiện chức năng FR7 và FR8.
+- Dữ liệu trong các file seed là dữ liệu demo; chưa xác nhận đã nhập toàn bộ dataset chính thức của đề bài.
+- Khung lịch hẹn được giả định là 60 phút.
 
 Chi tiết thay đổi thiết kế: `docs/thay-doi-thiet-ke.md`.
 
