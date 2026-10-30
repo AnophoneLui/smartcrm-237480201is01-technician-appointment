@@ -5,23 +5,23 @@
 ## 1. Luồng chính end-to-end (dữ liệu seed)
 | Mã | Bước | Cách làm | Kết quả thực tế | Bằng chứng |
 |---|---|---|---|---|
-| E2E-01 | Xem danh sách chưa phân công | Mở http://localhost:3000 | ☐ | `docs/e2e-01-danh-sach.png` |
-| E2E-02 | Xem gợi ý kỹ thuật viên | Bấm Phân công ở MM-DEMO-002 | ☐ | `docs/e2e-02-goi-y.png` |
-| E2E-03 | Phân công thành công | Chọn KTV → Xác nhận; phiếu chuyển “Đã phân công” | ☐ | `docs/e2e-03-phan-cong.png` |
-| E2E-04 | Ghi log | `SELECT * FROM ticket_status_log; SELECT * FROM ticket_assignment_log;` có dòng mới | ☐ | `docs/e2e-04-log.png` |
+| E2E-01 | Xem danh sách chưa phân công | Mở http://localhost:3000 | PASS – Danh sách phiếu hiển thị từ API | `docs/e2e-01-danh-sach.png` |
+| E2E-02 | Xem gợi ý kỹ thuật viên | Bấm Phân công ở MM-DEMO-002 | PASS – Hiển thị gợi ý kỹ thuật viên | `docs/e2e-02-goi-y.png` |
+| E2E-03 | Phân công thành công | Chọn KTV → Xác nhận; phiếu chuyển “Đã phân công” | PASS – Phân công thành công MM-DEMO-002 | `docs/e2e-03-phan-cong.png` |
+| E2E-04 | Ghi log | `SELECT * FROM ticket_status_log; SELECT * FROM ticket_assignment_log;` có dòng mới | PASS – Có bản ghi trong hai bảng log | `docs/e2e-04-log.png` |
 | E2E-05 | Đặt lịch hẹn + cảnh báo trùng | Đặt 09:00 rồi 09:30 cùng ngày → lần hai báo trùng | ☐ | `docs/e2e-05-lich-hen.png` |
 
 ## 2. Ba trạng thái
 | Mã | Trạng thái | Cách làm | Kết quả thực tế | Bằng chứng |
 |---|---|---|---|---|
-| ST-01 | Lỗi | Tắt backend rồi bấm bộ lọc khác → thông báo + nút Thử lại | ☐ | `docs/st-01-loi.png` |
-| ST-02 | Rỗng | Phiếu MM-DEMO-008 → “Không có kỹ thuật viên phù hợp”; hoặc bộ lọc không có dòng | ☐ | `docs/st-02-rong.png` |
-| ST-03 | Tải | Chụp khung “Đang tải dữ liệu…” (làm chậm mạng ở DevTools) | ☐ | `docs/st-03-tai.png` |
+| ST-01 | Lỗi | Tắt backend rồi bấm bộ lọc khác → thông báo + nút Thử lại | PASS – Hiển thị Error khi chặn request API | `docs/st-01-loi.png` |
+| ST-02 | Rỗng | Phiếu MM-DEMO-008 → “Không có kỹ thuật viên phù hợp”; hoặc bộ lọc không có dòng | PASS – Hiển thị Empty khi tìm kiếm không có kết quả | `docs/st-02-rong.png` |
+| ST-03 | Tải | Chụp khung “Đang tải dữ liệu…” (làm chậm mạng ở DevTools) | PASS – Hiển thị Loading khi làm chậm mạng | `docs/st-03-tai.png` |
 
 ## 3. API bằng curl
 | Mã | Lệnh | Kỳ vọng | Kết quả thực tế |
 |---|---|---|---|
-| TC-01 | `curl -i localhost:3000/health` | 200 | ☐ |
+| TC-01 | `curl -i localhost:3000/health` | 200 | PASS – HTTP 200 tại localhost:3002/health |
 | TC-02 | `curl -i localhost:3000/api/tickets?status=NEW` | 200, `data` là mảng | ☐ |
 | TC-04 | POST `/api/tickets` thiếu `ticket_code` | **422** kèm `fields.ticket_code` | ☐ |
 | TC-05 | `curl -i localhost:3000/api/tickets/abc` | 400 `ID_KHONG_HOP_LE` | ☐ |
@@ -46,7 +46,7 @@ Kết luận: PASS (32/32).
 Bằng chứng: `docs/npm-test.png`.
 
 ## 5. Kiểm tra clone mới (README mục 3)
-☐ Đã clone vào thư mục mới và làm đúng từng bước README. Bước nào thiếu/sai: ______________________
+☑ PASS – Đã clone sạch tag `v0.2`, cài đặt dependencies, chạy migration, seed, test và API `/health`. Bước nào thiếu/sai: ______________________
 
 ## 6. Ghi chú lỗi
 - Lỗi gặp: ______  · Cách xử lý: ______  · Kết quả: ______
