@@ -81,3 +81,78 @@ Chạy `npm run db:seed` hai lần trên database thử nghiệm.
 | technician_skill | 6 | 6 |
 | appointment | 1 | 1 |
 Kết luận: Không phát sinh thêm bản ghi trong lần kiểm thử. PASS.
+
+## 9. Kiểm chứng BT2 trên bản clone sạch v0.2 (30/10/2026)
+
+**Môi trường:** macOS, Node.js, PostgreSQL `smartcrm_bt2_verify`, API `http://localhost:3002`.
+
+**Phiên bản:** Git tag `v0.2`, commit `f119c0b`.
+
+### 9.1. Khả năng tái hiện
+
+- Clone repository và checkout tag `v0.2`: PASS.
+- `npm install`: PASS.
+- `npm run db:migrate`: PASS, cả 3 migration.
+- `npm run db:seed`: PASS.
+- Chạy lại migration và seed: PASS; số phiếu giữ nguyên 8, kỹ thuật viên giữ nguyên 4.
+- `npm test`: 32 PASS, 0 FAIL.
+- `npm run dev`: PASS.
+- `GET /health`: HTTP 200.
+- `GET /api/tickets?limit=100`: HTTP 200, trả về 8 phiếu trước khi thực hiện CRUD.
+
+### 9.2. CRUD Ticket
+
+| Thao tác | Kết quả thực tế | Đánh giá |
+|---|---|---|
+| POST `/api/tickets` | HTTP 201, tạo `BT2-CRUD-001`, ID 16 | PASS |
+| GET `/api/tickets/16` | HTTP 200 | PASS |
+| PUT `/api/tickets/16` | HTTP 200, đổi HIGH thành MEDIUM | PASS |
+| DELETE `/api/tickets/16` | HTTP 200, `deleted: true` | PASS |
+| GET sau khi xóa | HTTP 404 | PASS |
+
+### 9.3. CRUD Appointment
+
+| Thao tác | Kết quả thực tế | Đánh giá |
+|---|---|---|
+| Tạo lịch cho phiếu `MM-DEMO-002` | Thành công trên giao diện, appointment ID 1 | PASS |
+| GET `/api/tickets/5/appointments` | HTTP 200, trả về lịch hẹn | PASS |
+| PUT `/api/tickets/5/appointments/current` | HTTP 200, đổi sang 02/11/2026 15:20 GMT+7 | PASS |
+| DELETE `/api/tickets/5/appointments/current` | HTTP 200, `cancelled: true` | PASS |
+| GET sau khi hủy | HTTP 200, `data: []` | PASS |
+
+Hủy lịch là xóa mềm, không phải xóa vật lý.
+
+### 9.4. Kiểm thử dữ liệu không hợp lệ và giá trị biên
+
+| Trường hợp | Kết quả | Đánh giá |
+|---|---|---|
+| Tạo phiếu với `priority = INVALID` | HTTP 422 | PASS |
+| Tạo phiếu với `ticket_code` dài 21 ký tự | HTTP 422 | PASS |
+| Kiểm thử tự động bằng `npm test` | 32/32 PASS | PASS |
+
+### 9.5. Kiểm thử giao diện
+
+- Màn hình danh sách phiếu: hiển thị dữ liệu API thực tế.
+- Màn hình phân công: hiển thị gợi ý kỹ thuật viên và phân công thành công.
+- Màn hình chi tiết phiếu/lịch hẹn: tạo lịch thành công.
+- Loading: hiển thị “Đang tải dữ liệu...” khi giới hạn tốc độ mạng bằng DevTools.
+- Empty: tìm mã phiếu không tồn tại, hiển thị “Không tìm thấy phiếu phù hợp”.
+- Error: chặn request API bằng DevTools, hiển thị thông báo lỗi và nút “Thử lại”.
+
+### 9.6. Kiểm tra dữ liệu lịch sử
+
+Truy vấn trực tiếp trên PostgreSQL `smartcrm_bt2_verify`:
+
+| Bảng | Số bản ghi |
+|---|---:|
+| `ticket_assignment_log` | 1 |
+| `ticket_status_log` | 1 |
+
+Kết quả xác nhận có dữ liệu lịch sử trong cả hai bảng. Chưa đủ bằng chứng để khẳng định đáp ứng toàn bộ NFR4 về tỷ lệ ghi log và thời gian lưu trữ.
+
+### 9.7. Giới hạn kiểm chứng
+
+- Chưa có minh chứng chạy riêng kịch bản đặt hai lịch trùng nhau trong khoảng 60 phút trên môi trường này.
+- Chưa kiểm chứng đăng nhập, phân quyền NFR3.
+- Chưa đo hiệu năng NFR1, NFR2 và độ sẵn sàng NFR5.
+- Chưa kiểm chứng toàn bộ FR7, FR8.

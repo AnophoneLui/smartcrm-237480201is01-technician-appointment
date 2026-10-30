@@ -6,7 +6,7 @@
 ### TD-01 – Đồng bộ số lượng User Story và Use Case
 - **Phản hồi/điểm cần kiểm tra:** SRS, sơ đồ use case và hợp đồng API phải dùng cùng một bộ mã US/UC.
 - **Quyết định:** SỬA.
-- **Lý do:** Bản BT1 đã chỉnh sửa dùng US1–US7 và UC1–UC10; tài liệu API cũ trong repo đang có mã US đến US10, dễ gây không nhất quán.
+- **Lý do:** Bản tài liệu trước đây chưa thống nhất số lượng và mã User Story. SRS hiện tại sử dụng US1–US12 và UC1–UC10; cần đối chiếu bảng truy vết, sơ đồ use case và hợp đồng API để tránh liên kết sai mã.
 - **Ảnh hưởng:** `docs/srs.md`, `docs/use-case-diagram.png`, `docs/api-contract.md`. Đối chiếu lại với bản BT1 cuối cùng trước khi sửa sơ đồ.
 
 ### TD-02 – Bổ sung bảng lịch sử trạng thái phiếu
@@ -19,7 +19,7 @@
 - **Phản hồi/điểm cần kiểm tra:** Khi đổi kỹ thuật viên cần lưu lý do và người thực hiện.
 - **Quyết định:** SỬA.
 - **Lý do:** Có thể kiểm tra lại lịch sử phân công/đổi phân công.
-- **Ảnh hưởng:** Bảng `ticket_assignment_log`; module này sẽ được phát triển ở sprint sau, CRUD buổi 8 chưa thực hiện.
+- **Ảnh hưởng:** Bảng `ticket_assignment_log` và nghiệp vụ phân công/đổi kỹ thuật viên. Ở Buổi 8, chức năng này chưa hoàn thành; đến phiên bản BT2, backend đã triển khai ghi lịch sử phân công trong giao dịch cơ sở dữ liệu. Kiểm chứng trên `smartcrm_bt2_verify` ghi nhận 1 bản ghi trong bảng `ticket_assignment_log`. Chưa kiểm chứng đầy đủ yêu cầu lưu trữ log NFR4.
 
 ### TD-04 – Bổ sung bảng trung tâm và loại sự cố
 - **Phản hồi/điểm cần kiểm tra:** Các khóa ngoại `center_id` và `category_id` phải có bảng tham chiếu.
@@ -37,7 +37,7 @@
 - **Phản hồi/điểm cần kiểm tra:** Không nên làm toàn bộ Smart CRM trong một sprint.
 - **Quyết định:** GIỮ phạm vi L4; ưu tiên CRUD phiếu trước.
 - **Lý do:** Phù hợp mục tiêu workshop là có một module lõi chạy được.
-- **Ảnh hưởng:** API CRUD `tickets` là phần đầu tiên; gợi ý kỹ thuật viên, phân công, lịch hẹn và đóng phiếu chưa được tuyên bố là đã hoàn thành.
+- **Ảnh hưởng:** Trong Sprint 1, ưu tiên triển khai API CRUD `tickets`; các chức năng gợi ý kỹ thuật viên, phân công, lịch hẹn và đóng phiếu chưa được tuyên bố hoàn thành tại thời điểm đó. Đến phiên bản BT2, đã kiểm chứng API CRUD Ticket, CRUD Appointment, giao diện gợi ý/phân công kỹ thuật viên và cập nhật trạng thái có ghi log. Các chức năng chưa có minh chứng kiểm thử đầy đủ vẫn được ghi nhận là giới hạn, không tự động đánh giá PASS.
 
 ### TD-07 – Xóa mềm phiếu
 - **Phản hồi/điểm cần kiểm tra:** Không xóa hẳn phiếu đã có lịch sử nghiệp vụ.
