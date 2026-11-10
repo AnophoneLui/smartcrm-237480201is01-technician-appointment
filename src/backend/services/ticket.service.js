@@ -43,6 +43,34 @@ function trungLich(existingDates, gio, slotMinutes = SLOT_MINUTES) {
   return existingDates.some((d) => Math.abs(new Date(d).getTime() - t) < slotMinutes * 60000);
 }
 
+function ngayHenHopLe(gioHen) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/.exec(gioHen);
+  if (!match) return false;
+
+  const [, y, m, d, hh, mm, ss, zone] = match;
+  const year = Number(y);
+  const month = Number(m);
+  const day = Number(d);
+  const hour = Number(hh);
+  const minute = Number(mm);
+  const second = Number(ss);
+
+  if (year < 1 || month < 1 || month > 12 ||
+      hour > 23 || minute > 59 || second > 59) return false;
+
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (day < 1 || day > days[month - 1]) return false;
+
+  if (zone !== "Z") {
+    const offsetHour = Number(zone.slice(1, 3));
+    const offsetMinute = Number(zone.slice(4, 6));
+    if (offsetHour > 23 || offsetMinute > 59) return false;
+  }
+
+  return !Number.isNaN(Date.parse(gioHen));
+}
+
 // ---------- Service ----------
 function createTicketService(repo) {
   async function list(query = {}) {
@@ -222,9 +250,7 @@ function createTicketService(repo) {
   async function saveAppointment(id, { gioHen } = {}, replace = false) {
     const ticket = await getRaw(id);
 
-    if (typeof gioHen !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(gioHen) ||
-      Number.isNaN(Date.parse(gioHen))) {
+    if (typeof gioHen !== "string" || !ngayHenHopLe(gioHen)) {
       throw new AppError(422, "DU_LIEU_KHONG_HOP_LE", "Giờ hẹn phải là ISO 8601 có múi giờ.");
     }
 

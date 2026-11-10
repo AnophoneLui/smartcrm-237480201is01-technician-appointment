@@ -13,3 +13,27 @@ test('đổi lịch thành công', async () => { const result = await service().
 test('trùng lịch trả 409', async () => { await assert.rejects(service('APPOINTMENT_CONFLICT').createAppointment(1,{gioHen:future}), {status:409, code:'TRUNG_LICH'}); });
 test('phiếu đã có lịch trả 409', async () => { await assert.rejects(service('APPOINTMENT_STATE').createAppointment(1,{gioHen:future}), {status:409, code:'LICH_DA_THAY_DOI'}); });
 test('giờ không có timezone trả 422', async () => { await assert.rejects(service().createAppointment(1,{gioHen:'2099-10-24T08:30'}), {status:422}); });
+
+
+// BUG-03: Kiểm tra ngày thực tế trong lịch ISO 8601
+
+test('ngày 31 tháng 11 không hợp lệ trả 422', async () => {
+  await assert.rejects(
+    service().createAppointment(1, { gioHen: '2099-11-31T10:00:00+07:00' }),
+    { status: 422, code: 'DU_LIEU_KHONG_HOP_LE' }
+  );
+});
+
+test('ngày 29 tháng 2 của năm không nhuận trả 422', async () => {
+  await assert.rejects(
+    service().createAppointment(1, { gioHen: '2099-02-29T10:00:00+07:00' }),
+    { status: 422, code: 'DU_LIEU_KHONG_HOP_LE' }
+  );
+});
+
+test('ngày 29 tháng 2 của năm nhuận được chấp nhận', async () => {
+  const result = await service().createAppointment(1, {
+    gioHen: '2096-02-29T10:00:00+07:00'
+  });
+  assert.equal(result.appointmentId, 1);
+});
