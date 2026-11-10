@@ -5,10 +5,10 @@
 ## 1. Luồng chính end-to-end (dữ liệu seed)
 | Mã | Bước | Cách làm | Kết quả thực tế | Bằng chứng |
 |---|---|---|---|---|
-| E2E-01 | Xem danh sách chưa phân công | Mở http://localhost:3000 | PASS – Danh sách phiếu hiển thị từ API | `docs/e2e-01-danh-sach.png` |
-| E2E-02 | Xem gợi ý kỹ thuật viên | Bấm Phân công ở MM-DEMO-002 | PASS – Hiển thị gợi ý kỹ thuật viên | `docs/e2e-02-goi-y.png` |
-| E2E-03 | Phân công thành công | Chọn KTV → Xác nhận; phiếu chuyển “Đã phân công” | PASS – Phân công thành công MM-DEMO-002 | `docs/e2e-03-phan-cong.png` |
-| E2E-04 | Ghi log | `SELECT * FROM ticket_status_log; SELECT * FROM ticket_assignment_log;` có dòng mới | PASS – Có bản ghi trong hai bảng log | `docs/e2e-04-log.png` |
+| E2E-01 | Xem danh sách chưa phân công | Mở http://localhost:3000 | PASS – Danh sách phiếu hiển thị từ API | `docs/screenshots/01-danh-sach-phieu.png` |
+| E2E-02 | Xem gợi ý kỹ thuật viên | Mở màn hình phân công phiếu MM-DEMO-009 | PASS – Hiển thị gợi ý kỹ thuật viên | `docs/screenshots/02-phan-cong-ky-thuat-vien.png` |
+| E2E-03 | Phân công thành công | Xem thông báo phân công thành công trên phiếu MM-DEMO-009 | PASS – Giao diện hiển thị trạng thái Đã phân công | `docs/screenshots/03-chi-tiet-phieu.png` |
+| E2E-04 | Ghi log | `SELECT * FROM ticket_status_log; SELECT * FROM ticket_assignment_log;` có dòng mới | PASS – Có bản ghi trong hai bảng log | `docs/screenshots/e2e-04-log.png` |
 | E2E-05 | Đặt lịch hẹn + cảnh báo trùng | Đặt 09:00 rồi 09:30 cùng ngày → lần hai báo trùng | ☐ | `docs/e2e-05-lich-hen.png` |
 
 ## 2. Ba trạng thái
@@ -43,7 +43,7 @@ Các nhóm kiểm thử:
 - Kiểm tra hủy lịch thành công.
 - Kiểm tra hủy lịch không tồn tại (HTTP 404).
 Kết luận: PASS (32/32).
-Bằng chứng: `docs/npm-test.png`.
+Bằng chứng: `docs/screenshots/npm-test.png`.
 
 ## 5. Kiểm tra clone mới (README mục 3)
 ☑ PASS – Đã clone sạch tag `v0.2`, cài đặt dependencies, chạy migration, seed, test và API `/health`. Bước nào thiếu/sai: ______________________
@@ -156,3 +156,132 @@ Kết quả xác nhận có dữ liệu lịch sử trong cả hai bảng. Chưa
 - Chưa kiểm chứng đăng nhập, phân quyền NFR3.
 - Chưa đo hiệu năng NFR1, NFR2 và độ sẵn sàng NFR5.
 - Chưa kiểm chứng toàn bộ FR7, FR8.
+
+## 10. Kết quả kiểm thử Buổi 14 – Ngày 10/11/2026
+
+### 10.1. Môi trường và phạm vi
+
+- Module: L4 – Phân công kỹ thuật viên và lịch hẹn.
+- Hệ điều hành: macOS.
+- Backend: Node.js/Express.
+- Database kiểm thử độc lập: `smartcrm_buoi14_test`.
+- API: `http://localhost:3014`.
+- Công cụ: curl, PostgreSQL psql, Node.js Test Runner.
+- Test Plan: `docs/test-plan.md`, mục 6.
+- Không sử dụng database chính `smartcrm` cho các kiểm thử này.
+
+### 10.2. Tổng hợp kết quả thực tế
+
+| Nhóm kiểm thử | Đã chạy | PASS | FAIL |
+|---|---:|---:|---:|
+| API và tích hợp thủ công (TC-01 đến TC-11) | 11 | 11 | 0 |
+| Bộ unit test tự động (`npm test`) | 32 | 32 | 0 |
+
+Lưu ý: 11 test case thủ công không được tính là 11 unit test. Bộ 32 test tự động được thống kê riêng.
+
+### 10.3. Kết quả 11 test case
+
+| ID | Nội dung | Kết quả thực tế | Đánh giá | Minh chứng |
+|---|---|---|---|---|
+| TC-01 | Xem danh sách phiếu | HTTP 200, trả 8 phiếu | PASS | `bt3-api-get-tickets.png` |
+| TC-02 | Gợi ý kỹ thuật viên | HTTP 200, trả 3 kỹ thuật viên | PASS | `bt3-api-technician-suggestions.png` |
+| TC-03 | Phân công kỹ thuật viên | HTTP 200, DB xác nhận ASSIGNED | PASS | `bt3-api-assign-technician.png` |
+| TC-04 | Thiếu technicianId | HTTP 422, DB không thay đổi | PASS | `bt3-api-invalid-technician.png` |
+| TC-05 | technicianId bằng 0 | HTTP 422, DB không thay đổi | PASS | `bt3-api-boundary-technician.png` |
+| TC-06 | Phiếu không tồn tại | HTTP 404, KHONG_TIM_THAY_PHIEU | PASS | `bt3-api-ticket-not-found.png` |
+| TC-07 | Đặt lịch khi chưa phân công | HTTP 409 CHUA_PHAN_CONG, không tạo lịch | PASS | `bt3-api-unassigned-appointment.png` |
+| TC-08 | Hai yêu cầu đặt lịch đồng thời | Một HTTP 201, một HTTP 409 TRUNG_LICH; DB chỉ thêm 1 lịch | PASS | `bt3-concurrent-appointments.png` |
+| TC-09 | Lịch cách nhau 30 phút | HTTP 409 TRUNG_LICH, không tạo lịch mới | PASS | `bt3-appointment-30min-conflict.png` |
+| TC-10 | Lịch cách nhau đúng 60 phút | HTTP 201, DB có 2 lịch cách nhau 60 phút | PASS | `bt3-appointment-boundary-60min.png` |
+| TC-11 | Gửi lại yêu cầu tạo lịch | HTTP 409 LICH_DA_THAY_DOI, không tạo bản ghi trùng | PASS | `bt3-duplicate-appointment.png` |
+
+Các ảnh được lưu trong `docs/screenshots/`.
+
+### 10.4. Kiểm chứng đặt lịch đồng thời – TC-08
+
+Đây là nội dung bổ sung theo nhận xét BT2 của giảng viên.
+
+Lần kiểm thử đầu tiên:
+- Hai phiếu ID 4 và 7 được phân công cho kỹ thuật viên ID 4.
+- Hai yêu cầu tạo lịch cùng thời điểm được gửi song song.
+- Kết quả: HTTP 201 và HTTP 409 `TRUNG_LICH`.
+- PostgreSQL xác nhận chỉ có một lịch được tạo.
+
+Lần chạy lại để lưu bằng chứng:
+- Hai phiếu ID 2 và 5 được phân công cho kỹ thuật viên ID 3 (Lê Thị Cẩm).
+- Giờ hẹn: 15/11/2026, 14:45:54 (GMT+7).
+- TC-08-A: HTTP 201, tạo appointment ID 3 cho ticket ID 2.
+- TC-08-B: HTTP 409, lỗi `TRUNG_LICH`.
+- PostgreSQL xác nhận tổng cộng 3 lịch, trong đó chỉ có một lịch mới từ lần chạy lại.
+- Bằng chứng: `docs/screenshots/bt3-concurrent-appointments.png`.
+
+Kết luận: PASS đối với các lần kiểm thử đồng thời đã thực hiện. Chưa thay thế cho kiểm thử tải hoặc kiểm chứng mọi tình huống cạnh tranh dữ liệu.
+
+### 10.5. Kiểm thử quy tắc khoảng cách lịch hẹn
+
+- TC-09: Hai lịch cách nhau 30 phút, hệ thống từ chối bằng HTTP 409 `TRUNG_LICH`.
+- TC-10: Hai lịch cách nhau đúng 60 phút, hệ thống chấp nhận bằng HTTP 201.
+- PostgreSQL xác nhận hai lịch của kỹ thuật viên ID 4 vào 14:36:33 và 15:36:33 ngày 13/11/2026 (GMT+7).
+- TC-11: Gửi lại yêu cầu tạo lịch cho phiếu đã có lịch, hệ thống trả HTTP 409 `LICH_DA_THAY_DOI`; số bản ghi không tăng.
+
+### 10.6. Kết quả kiểm thử tự động
+
+- Lệnh: `npm test`.
+- Tổng số test: 32.
+- PASS: 32.
+- FAIL: 0.
+- Minh chứng: `docs/screenshots/bt3-unit-test-32-pass.png`.
+- Commit sửa dữ liệu ngày cố định trong test: `28b9f4b`.
+
+### 10.7. Giới hạn và công việc tiếp theo
+
+- Chưa có bằng chứng kiểm thử xác thực và phân quyền; không kết luận NFR bảo mật đã đạt.
+- Chưa thực hiện kiểm thử tải lớn và đo hiệu năng toàn hệ thống.
+- Cần hoàn thiện Bug Log dựa trên lỗi thực tế, không tạo lỗi giả.
+- Cần kiểm tra lại toàn bộ test sau khi hoàn tất các thay đổi mã nguồn.
+- Cần commit và push tài liệu cùng ảnh minh chứng lên GitHub.
+
+### 10.8. Kiểm thử hồi quy sau sửa BUG-03
+
+- Lỗi: API nhận ngày hẹn không tồn tại `2026-11-31T10:00:00+07:00`.
+- API kiểm thử: `POST /api/tickets/5/appointments`.
+- Kết quả trước sửa: HTTP 500 `LOI_HE_THONG`.
+- PostgreSQL ghi nhận mã lỗi `22008`.
+- Nguyên nhân: `Date.parse()` chưa kiểm tra đầy đủ ngày hợp lệ theo lịch.
+- Cách sửa: bổ sung hàm `ngayHenHopLe()` trong `ticket.service.js`.
+- Kết quả sau sửa: HTTP 422 `DU_LIEU_KHONG_HOP_LE`.
+- Commit sửa lỗi: `8f0ada3`.
+- Bằng chứng trước sửa: `docs/screenshots/bt3-bug03-before-fix.png`.
+- Bằng chứng sau sửa: `docs/screenshots/bt3-bug03-after-fix.png`.
+
+### 10.9. Kết quả Unit Test mới nhất
+
+- Lệnh: `npm test`.
+- Tổng số test: 35.
+- PASS: 35.
+- FAIL: 0.
+- Số test bổ sung cho BUG-03: 3.
+- Các trường hợp bổ sung: ngày 31/11 không tồn tại, ngày 29/02 năm không nhuận, ngày 29/02 năm nhuận.
+- Bằng chứng: `docs/screenshots/bt3-unit-test-35-pass.png`.
+
+Kết quả 32/32 PASS tại mục 10.6 là kết quả trước khi bổ sung ba test mới.
+
+### 10.10. Kiểm chứng chạy lại Migration
+
+- Database: `smartcrm_buoi14_test`.
+- Đặt `is_active = false` cho appointment ID 1.
+- Chạy lại các Migration thành công.
+- Kiểm tra sau Migration: appointment ID 1 vẫn có `is_active = false`.
+- Kết quả: PASS.
+- Bằng chứng: `docs/screenshots/bt3-migration-rerun-pass.png`.
+- Commit sửa lỗi liên quan: `0764fe4`.
+
+### 10.11. Tổng kết và giới hạn
+
+- API và kiểm thử tích hợp thủ công TC-01 đến TC-11: 11 PASS, 0 FAIL.
+- Bộ Unit Test mới nhất: 35 PASS, 0 FAIL.
+- Bug Log: 3 lỗi đã ghi nhận; xem `docs/bug-log.md`.
+- BUG-03 đã được tái hiện trước sửa và kiểm chứng sau sửa.
+- BUG-02 có kiểm chứng hồi quy sau sửa; chưa tái hiện riêng phiên bản lỗi cũ trong buổi này.
+- Chưa có đủ bằng chứng kiểm thử đăng nhập, phân quyền và hiệu năng tải lớn.
+- Cần commit và push tài liệu, ảnh minh chứng trước khi nộp.

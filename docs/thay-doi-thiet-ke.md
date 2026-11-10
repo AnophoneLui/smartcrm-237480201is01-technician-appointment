@@ -76,3 +76,36 @@
 - **Lý do:** Tránh kích hoạt lại lịch hẹn đã hủy khi chạy migration lần nữa.
 - **Cách xử lý:** Chỉ chuẩn hóa dữ liệu khi bổ sung cột `is_active` lần đầu; giữ nguyên trạng thái trong các lần chạy sau.
 - **Kiểm thử:** Migration chạy lại thành công, lịch đã hủy vẫn có `is_active = false`.
+
+## Điều chỉnh sau phản hồi BT2 và kiểm thử Buổi 14 (10/11/2026)
+
+### TD-15 – Kiểm chứng xử lý đặt lịch đồng thời
+
+- **Phản hồi BT2:** Chưa có bằng chứng kiểm thử độc lập cho tình huống hai yêu cầu đặt lịch đồng thời.
+- **Quyết định:** BỔ SUNG KIỂM THỬ.
+- **Cách thực hiện:** Gửi đồng thời hai yêu cầu POST tạo lịch cho hai phiếu được phân công cùng một kỹ thuật viên và cùng thời điểm.
+- **Kết quả:** Một yêu cầu trả HTTP 201, yêu cầu còn lại trả HTTP 409 `TRUNG_LICH`; PostgreSQL xác nhận chỉ có một lịch mới.
+- **Đánh giá:** PASS đối với tình huống TC-08 đã kiểm chứng, chưa thay thế kiểm thử tải lớn.
+- **Minh chứng:** `docs/screenshots/bt3-concurrent-appointments.png`.
+- **Tài liệu liên quan:** `docs/test-plan.md`, `docs/ket-qua-kiem-thu.md`.
+
+### TD-16 – Kiểm tra ngày hẹn hợp lệ theo lịch
+
+- **Vấn đề:** API chấp nhận ngày không tồn tại `2026-11-31T10:00:00+07:00`, sau đó phát sinh HTTP 500.
+- **Quyết định:** SỬA.
+- **Nguyên nhân:** Kiểm tra bằng `Date.parse()` chưa đủ để phát hiện ngày không hợp lệ theo lịch.
+- **Cách xử lý:** Bổ sung hàm `ngayHenHopLe()` để kiểm tra ngày, tháng, năm nhuận và thời gian trước khi ghi dữ liệu.
+- **Kết quả:** Dữ liệu ngày không hợp lệ trả HTTP 422 `DU_LIEU_KHONG_HOP_LE`.
+- **Kiểm thử hồi quy:** Bổ sung 3 unit test; kết quả toàn bộ `npm test` là 35 PASS, 0 FAIL.
+- **Commit:** `8f0ada3`.
+- **Minh chứng:** `docs/screenshots/bt3-bug03-before-fix.png`, `docs/screenshots/bt3-bug03-after-fix.png`, `docs/screenshots/bt3-unit-test-35-pass.png`.
+- **Tài liệu liên quan:** `docs/bug-log.md`, `docs/ket-qua-kiem-thu.md`.
+
+### TD-17 – Ghi nhận giới hạn xác thực và phân quyền
+
+- **Phản hồi BT2:** Chưa triển khai đầy đủ Authentication và Authorization.
+- **Quyết định:** TIẾP TỤC HOÃN, chưa tuyên bố hoàn thành.
+- **Hiện trạng:** Chưa có bằng chứng kiểm thử đăng nhập, kiểm soát quyền theo trung tâm và che dữ liệu nhạy cảm.
+- **Rủi ro:** Chưa đủ cơ sở kết luận hệ thống đáp ứng yêu cầu bảo mật và phân quyền.
+- **Hướng xử lý tiếp theo:** Thiết kế xác thực người dùng, phân quyền theo vai trò/trung tâm và bổ sung kiểm thử bảo mật.
+- **Tài liệu liên quan:** TD-10, `docs/test-plan.md`, `docs/ket-qua-kiem-thu.md`.
