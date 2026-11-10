@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smartcrm_docker
+      POSTGRES_USER: smartcrm_user
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD}
+    volumes:
+      - smartcrm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcrm_user -d smartcrm_docker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://smartcrm_user:${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD}@db:5432/smartcrm_docker
+    command: ["npm", "run", "db:migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:3015:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://smartcrm_user:${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD}@db:5432/smartcrm_docker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  smartcrm_postgres_data:

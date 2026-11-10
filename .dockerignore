@@ -1,0 +1,17 @@
+node_modules/
+.git/
+.github/
+.env
+.env.*
+!.env.example
+*.log
+*.bak
+*.backup-*
+backup-ui/
+.DS_Store
+.vscode/
+.idea/
+docs/
+tests/
+coverage/
+dist/
