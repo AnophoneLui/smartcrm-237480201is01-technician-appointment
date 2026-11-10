@@ -79,6 +79,13 @@ test("lịch hẹn: trùng nếu cách nhau dưới 60 phút, không trùng nế
 });
 test("đặt lịch khi phiếu chưa phân công trả 409 CHUA_PHAN_CONG", async () => {
   const svc = createTicketService(fakeRepo());
-  await assert.rejects(svc.createAppointment("7", { gioHen: "2026-11-02T09:00:00Z" }),
-    (e) => e.status === 409 && e.code === "CHUA_PHAN_CONG");
+
+  // Tạo thời điểm trong tương lai để test không bị lỗi do ngày cố định.
+  const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const gioHen = futureDate.toISOString();
+
+  await assert.rejects(
+    svc.createAppointment("7", { gioHen }),
+    (e) => e.status === 409 && e.code === "CHUA_PHAN_CONG"
+  );
 });
