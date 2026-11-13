@@ -23,6 +23,16 @@ services:
         condition: service_healthy
     restart: "no"
 
+  seed:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://smartcrm_user:${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD}@db:5432/smartcrm_docker
+    command: ["npm", "run", "db:seed"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
   api:
     build: .
     ports:
@@ -31,8 +41,17 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://smartcrm_user:${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD}@db:5432/smartcrm_docker
     depends_on:
-      migrate:
+      seed:
         condition: service_completed_successfully
-
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 volumes:
   smartcrm_postgres_data:
