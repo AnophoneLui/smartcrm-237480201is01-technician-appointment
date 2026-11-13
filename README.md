@@ -94,7 +94,7 @@ Giao diện hỗ trợ trạng thái **Loading, Empty, Error**.
 
 Chạy `npm test` bằng Node.js Test Runner.
 
-**Kết quả kiểm thử tự động: 32 PASS / 32 test, 0 FAIL.**
+**Kết quả kiểm thử tự động ngày 13/11/2026: 35 PASS / 35 test, 0 FAIL.**
 
 - Kiểm thử dữ liệu hợp lệ, không hợp lệ và giá trị biên.
 - Kiểm thử phân công, đặt lịch, trùng lịch và hủy lịch.
@@ -133,3 +133,86 @@ package.json
 - Khung lịch hẹn được giả định là 60 phút.
 
 Chi tiết thay đổi thiết kế: `docs/thay-doi-thiet-ke.md`.
+
+## 9. Triển khai bằng Docker Compose (BT3)
+
+### 9.1. Yêu cầu môi trường
+
+- Git
+- Docker Desktop và Docker Compose
+- Cổng 3015 chưa được sử dụng
+
+Không cần cài đặt PostgreSQL riêng khi triển khai bằng Docker.
+
+### 9.2. Clone và cấu hình
+
+```bash
+git clone https://github.com/AnophoneLui/smartcrm-237480201is01-technician-appointment.git
+cd smartcrm-237480201is01-technician-appointment
+cp .env.example .env
+```
+
+Mở file `.env`, thay `DOCKER_DB_PASSWORD` bằng mật khẩu riêng. Không commit file `.env` lên GitHub.
+
+### 9.3. Khởi động hệ thống
+
+```bash
+docker compose up -d --build
+```
+
+Docker Compose tự động thực hiện:
+
+1. Khởi động PostgreSQL.
+2. Chạy database migration.
+3. Chạy seed dữ liệu demo.
+4. Khởi động API và giao diện.
+
+Truy cập ứng dụng tại: http://localhost:3015
+
+### 9.4. Kiểm tra triển khai
+
+```bash
+docker compose ps -a
+curl http://localhost:3015/health
+curl http://localhost:3015/api/tickets
+```
+
+Kết quả mong đợi:
+
+- PostgreSQL (`db`): healthy
+- Migration (`migrate`): exited (0)
+- Seed (`seed`): exited (0)
+- API (`api`): healthy
+- Endpoint `/health`: HTTP 200
+
+### 9.5. Kiểm thử tự động
+
+Chạy trên máy có Node.js và npm:
+
+```bash
+npm install
+npm test
+```
+
+Kết quả kiểm thử trên bản clone sạch ngày 13/11/2026:
+
+- Tổng số: 35 tests
+- PASS: 35
+- FAIL: 0
+- SKIPPED: 0
+
+### 9.6. Xem log và dừng hệ thống
+
+```bash
+docker compose logs api
+docker compose down
+```
+
+Lệnh `docker compose down` không xóa named volume PostgreSQL. Không sử dụng `docker compose down -v` nếu muốn giữ dữ liệu.
+
+### 9.7. Lưu ý bảo mật và phạm vi
+
+- Database Docker `smartcrm_docker` độc lập với PostgreSQL cài trên máy.
+- Không công khai mật khẩu hoặc file `.env`.
+- Dữ liệu seed chỉ phục vụ demo và kiểm thử.
+- Hệ thống chưa hoàn thiện xác thực và phân quyền; không triển khai công khai lên production khi chưa bổ sung các biện pháp bảo mật cần thiết.
