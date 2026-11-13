@@ -175,27 +175,27 @@ Kết quả xác nhận có dữ liệu lịch sử trong cả hai bảng. Chưa
 | Nhóm kiểm thử | Đã chạy | PASS | FAIL |
 |---|---:|---:|---:|
 | API và tích hợp thủ công (TC-01 đến TC-11) | 11 | 11 | 0 |
-| Bộ unit test tự động (`npm test`) | 32 | 32 | 0 |
+| Bộ unit test tự động (`npm test`) | 35 | 35 | 0 |
 
-Lưu ý: 11 test case thủ công không được tính là 11 unit test. Bộ 32 test tự động được thống kê riêng.
+Lưu ý: 11 test case thủ công không được tính là 11 unit test. Bộ 35 test tự động được thống kê riêng.
 
 ### 10.3. Kết quả 11 test case
 
-| ID | Nội dung | Kết quả thực tế | Đánh giá | Minh chứng |
-|---|---|---|---|---|
-| TC-01 | Xem danh sách phiếu | HTTP 200, trả 8 phiếu | PASS | `bt3-api-get-tickets.png` |
-| TC-02 | Gợi ý kỹ thuật viên | HTTP 200, trả 3 kỹ thuật viên | PASS | `bt3-api-technician-suggestions.png` |
-| TC-03 | Phân công kỹ thuật viên | HTTP 200, DB xác nhận ASSIGNED | PASS | `bt3-api-assign-technician.png` |
-| TC-04 | Thiếu technicianId | HTTP 422, DB không thay đổi | PASS | `bt3-api-invalid-technician.png` |
-| TC-05 | technicianId bằng 0 | HTTP 422, DB không thay đổi | PASS | `bt3-api-boundary-technician.png` |
-| TC-06 | Phiếu không tồn tại | HTTP 404, KHONG_TIM_THAY_PHIEU | PASS | `bt3-api-ticket-not-found.png` |
-| TC-07 | Đặt lịch khi chưa phân công | HTTP 409 CHUA_PHAN_CONG, không tạo lịch | PASS | `bt3-api-unassigned-appointment.png` |
-| TC-08 | Hai yêu cầu đặt lịch đồng thời | Một HTTP 201, một HTTP 409 TRUNG_LICH; DB chỉ thêm 1 lịch | PASS | `bt3-concurrent-appointments.png` |
-| TC-09 | Lịch cách nhau 30 phút | HTTP 409 TRUNG_LICH, không tạo lịch mới | PASS | `bt3-appointment-30min-conflict.png` |
-| TC-10 | Lịch cách nhau đúng 60 phút | HTTP 201, DB có 2 lịch cách nhau 60 phút | PASS | `bt3-appointment-boundary-60min.png` |
-| TC-11 | Gửi lại yêu cầu tạo lịch | HTTP 409 LICH_DA_THAY_DOI, không tạo bản ghi trùng | PASS | `bt3-duplicate-appointment.png` |
+| ID | Tiền điều kiện | Bước thực hiện | Dữ liệu kiểm thử | Kết quả mong đợi (đo được) | Ưu tiên | Kết quả thực tế | PASS/FAIL |
+|---|---|---|---|---|---|---|---|
+| TC-01 | API chạy, DB đã seed | GET `/api/tickets` | 8 phiếu demo | HTTP 200, trả danh sách 8 phiếu | High | HTTP 200, có 8 phiếu | PASS |
+| TC-02 | Có phiếu ID 1 | GET `/api/tickets/1/suggestions` | ticketId=1 | HTTP 200, trả danh sách kỹ thuật viên gợi ý | High | HTTP 200, có 3 kỹ thuật viên | PASS |
+| TC-03 | Phiếu ID 1 chưa phân công | PATCH `/api/tickets/1/technician`, kiểm tra DB | technicianId=1, reason hợp lệ | HTTP 200, phiếu chuyển ASSIGNED, technician_id=1 | High | HTTP 200, DB xác nhận ASSIGNED và ID 1 | PASS |
+| TC-04 | Phiếu ID 8 chưa phân công | PATCH phân công thiếu technicianId, kiểm tra DB | Thiếu trường technicianId | HTTP 422, không thay đổi phiếu | High | HTTP 422, DB vẫn NEW và chưa phân công | PASS |
+| TC-05 | Phiếu ID 8 chưa phân công | PATCH phân công với ID biên, kiểm tra DB | technicianId=0 | HTTP 422, không thay đổi phiếu | Medium | HTTP 422, DB không thay đổi | PASS |
+| TC-06 | Không có phiếu ID 999999 | GET `/api/tickets/999999` | ticketId=999999 | HTTP 404, mã KHONG_TIM_THAY_PHIEU | Medium | HTTP 404, KHONG_TIM_THAY_PHIEU | PASS |
+| TC-07 | Phiếu ID 8 chưa phân công | POST lịch hẹn, sau đó GET lịch | gioHen hợp lệ trong tương lai | HTTP 409 CHUA_PHAN_CONG, GET trả mảng rỗng | High | HTTP 409, GET 200 với data=[] | PASS |
+| TC-08 | Hai phiếu cùng kỹ thuật viên, chưa có lịch | Gửi đồng thời 2 POST đặt lịch cùng giờ, kiểm tra DB | Lần chạy lại: ticketId=2 và 5, technicianId=3, cùng giờ 15/11/2026 | Một HTTP 201, một HTTP 409 TRUNG_LICH; DB chỉ thêm 1 lịch | Critical | HTTP 201 và 409; DB chỉ thêm appointment ID 3 cho phiếu 2 | PASS |
+| TC-09 | Phiếu ID 4 có lịch, phiếu ID 7 cùng kỹ thuật viên | POST lịch cho phiếu 7 cách lịch phiếu 4 đúng 30 phút | 13/11/2026 15:06:33 (GMT+7) | HTTP 409 TRUNG_LICH, không thêm lịch | High | HTTP 409, DB vẫn chỉ có 1 lịch tại thời điểm kiểm thử | PASS |
+| TC-10 | Phiếu ID 4 có lịch, phiếu ID 7 chưa có lịch | POST lịch cho phiếu 7 cách lịch phiếu 4 đúng 60 phút | 13/11/2026 15:36:33 (GMT+7) | HTTP 201, DB có 2 lịch cách nhau 60 phút | High | HTTP 201, DB có đúng 2 lịch | PASS |
+| TC-11 | Phiếu ID 7 đã có lịch | Gửi lại POST tạo lịch cùng giờ, kiểm tra DB | 13/11/2026 15:36:33 (GMT+7) | HTTP 409 LICH_DA_THAY_DOI, DB không thêm lịch | High | HTTP 409, DB vẫn có 2 lịch | PASS |
 
-Các ảnh được lưu trong `docs/screenshots/`.
+Các ảnh minh chứng tương ứng TC-01 đến TC-11 được lưu tại `docs/screenshots/` và liệt kê trong `docs/test-plan.md`, mục 6.3.
 
 ### 10.4. Kiểm chứng đặt lịch đồng thời – TC-08
 

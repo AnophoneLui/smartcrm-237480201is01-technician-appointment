@@ -6,11 +6,11 @@
 
 ## 1. Danh sách lỗi
 
-| ID | Mức độ | Mô tả | Trạng thái | Commit |
-|---|---|---|---|---|
-| BUG-01 | Minor | Unit test sử dụng ngày hẹn cố định đã hết hạn, làm kết quả kiểm thử phụ thuộc thời điểm chạy | Đã sửa | `28b9f4b` |
-| BUG-02 | Major (đánh giá theo rủi ro dữ liệu) | Migration chạy lại có nguy cơ kích hoạt lại lịch hẹn đã hủy | Đã sửa, đã kiểm chứng sau sửa | `0764fe4` |
-| BUG-03 | Major (đánh giá sơ bộ) | Ngày hẹn không tồn tại làm API trả HTTP 500 thay vì 422 | Đã sửa, đã kiểm chứng | `8f0ada3` |
+| ID | Mức độ | Mô tả | Bước tái hiện / Điều kiện | Kết quả mong đợi | Kết quả ghi nhận | Trạng thái / Commit |
+|---|---|---|---|---|---|---|
+| BUG-01 | Minor | Unit test phụ thuộc ngày hẹn cố định | Chạy test sau khi ngày hẹn trong fixture đã qua | Test không phụ thuộc ngày chạy | Fixture hết hạn làm test thất bại | Đã sửa – `28b9f4b` |
+| BUG-02 | Major (rủi ro dữ liệu) | Migration có nguy cơ kích hoạt lại lịch đã hủy | Chạy lại migration cũ trên dữ liệu có lịch đã hủy; chưa tái hiện trực tiếp trước sửa | Lịch đã hủy giữ `is_active=false` | Phát hiện rủi ro từ logic migration cũ; sau sửa đã kiểm chứng PASS | Đã sửa – `0764fe4` |
+| BUG-03 | Major (đánh giá sơ bộ) | Ngày hẹn không tồn tại gây HTTP 500 | POST `/api/tickets/5/appointments` với ngày `2026-11-31T10:00:00+07:00` | HTTP 422 `DU_LIEU_KHONG_HOP_LE` | Trước sửa: HTTP 500 `LOI_HE_THONG` | Đã sửa – `8f0ada3` |
 
 ## 2. Chi tiết BUG-01
 
@@ -48,14 +48,7 @@
 
 **Giới hạn:** Chưa thực hiện kiểm thử tái hiện lỗi trên phiên bản Migration cũ trong buổi này. Mức Major được đánh giá theo tác động tiềm tàng đến tính toàn vẹn dữ liệu.
 
-## 4. Công việc còn lại
-
-- Xác minh thêm lỗi thực tế nếu cần đáp ứng yêu cầu tối thiểu 3 bug.
-- Không ghi nhận tính năng mới hoặc thay đổi định dạng mã nguồn là bug fix khi không có bằng chứng.
-- Chạy lại toàn bộ kiểm thử sau khi hoàn tất các thay đổi.
-
-
-## 5. Chi tiết BUG-03
+## 4. Chi tiết BUG-03
 
 **Mức độ:** Major (đánh giá sơ bộ theo ảnh hưởng đến xử lý dữ liệu đầu vào).
 
@@ -83,3 +76,11 @@
 - `docs/screenshots/bt3-unit-test-35-pass.png`
 
 **Trạng thái:** Đã sửa, kiểm thử thành công và tạo commit riêng `8f0ada3`.
+
+
+## 5. Ghi chú kiểm chứng
+
+- Đã ghi nhận 3 lỗi, gồm 2 lỗi được đánh giá mức Major.
+- BUG-02 được đánh giá theo rủi ro dữ liệu; chưa có bằng chứng tái hiện trực tiếp trên phiên bản trước sửa.
+- Bộ kiểm thử hồi quy mới nhất: 35 PASS, 0 FAIL.
+- Các mã commit được xác nhận tồn tại trong repository.
