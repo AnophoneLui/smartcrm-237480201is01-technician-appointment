@@ -285,3 +285,155 @@ Kết quả 32/32 PASS tại mục 10.6 là kết quả trước khi bổ sung b
 - BUG-02 có kiểm chứng hồi quy sau sửa; chưa tái hiện riêng phiên bản lỗi cũ trong buổi này.
 - Chưa có đủ bằng chứng kiểm thử đăng nhập, phân quyền và hiệu năng tải lớn.
 - Cần commit và push tài liệu, ảnh minh chứng trước khi nộp.
+
+## 11. Kết quả kiểm thử triển khai Docker – BT3 (13/11/2026)
+
+### 11.1. Mục tiêu kiểm thử
+
+Kiểm chứng khả năng triển khai và vận hành module Smart CRM – L4 bằng Docker Compose, bảo đảm hệ thống có thể khởi động từ mã nguồn trên GitHub, tự động khởi tạo cơ sở dữ liệu và cung cấp API cùng giao diện phục vụ demo.
+
+### 11.2. Môi trường kiểm thử
+
+| Thành phần | Cấu hình |
+|---|---|
+| Máy kiểm thử | macOS |
+| Công cụ triển khai | Docker Desktop, Docker Compose |
+| Backend | Node.js, Express |
+| Cơ sở dữ liệu | PostgreSQL 16 trong Docker |
+| Frontend | HTML/CSS/JavaScript, Vue 3 |
+| Database Docker | `smartcrm_docker` |
+| Cổng ứng dụng gốc | `3015` |
+| Cổng bản clone kiểm thử | `3016` |
+| Nguồn mã | GitHub, nhánh `main` |
+
+Bản clone kiểm thử sử dụng Docker Compose project và database volume riêng, không can thiệp vào cơ sở dữ liệu của project gốc.
+
+### 11.3. Kiểm thử Docker Compose
+
+| Mã TC | Nội dung kiểm thử | Kết quả |
+|---|---|---|
+| BT3-01 | Build và khởi động bằng `docker compose up -d --build` | PASS |
+| BT3-02 | PostgreSQL khởi động và đạt trạng thái healthy | PASS |
+| BT3-03 | Migration tự động hoàn thành với exit code 0 | PASS |
+| BT3-04 | Seed tự động hoàn thành với exit code 0 | PASS |
+| BT3-05 | API khởi động và đạt trạng thái healthy | PASS |
+| BT3-06 | Endpoint `/health` trả HTTP 200 | PASS |
+| BT3-07 | Endpoint `/api/tickets` trả 8 phiếu demo | PASS |
+
+**Kết quả:** 7/7 trường hợp kiểm thử triển khai Docker đạt yêu cầu.
+
+### 11.4. Kiểm thử Migration và Seed
+
+Quá trình triển khai sử dụng thứ tự phụ thuộc:
+
+`PostgreSQL → Migration → Seed → API`
+
+Các service Migration và Seed kết thúc với exit code 0 trước khi API khởi động.
+
+Kiểm thử chạy lại Seed được thực hiện hai lần trên database thử nghiệm. Số bản ghi trước và sau không thay đổi:
+
+| Bảng | Số bản ghi |
+|---|---:|
+| `service_center` | 3 |
+| `incident_category` | 3 |
+| `technician` | 4 |
+| `technician_skill` | 6 |
+| `ticket` | 8 |
+| `appointment` | 0 |
+| `ticket_assignment_log` | 0 |
+| `ticket_status_log` | 0 |
+
+**Kết quả:** PASS – Không phát sinh bản ghi trùng trong các bảng được kiểm tra sau khi chạy lại Seed.
+
+Các số liệu trên được ghi nhận trước khi thực hiện thao tác phân công kỹ thuật viên trong bản clone.
+
+### 11.5. Kiểm thử Clean Clone từ GitHub
+
+Repository được clone vào thư mục độc lập `smartcrm-bt3-clone-test`.
+
+Bản clone sử dụng cổng `3016` để tránh xung đột với ứng dụng gốc trên cổng `3015`.
+
+Kết quả kiểm thử:
+
+- Docker Compose khởi động thành công bốn service.
+- PostgreSQL, Migration, Seed và API đạt trạng thái mong đợi.
+- API `/health` trả HTTP 200.
+- API `/api/tickets` trả 8 phiếu demo.
+- Giao diện danh sách phiếu hiển thị trong trình duyệt.
+- Có thể thực hiện thao tác phân công kỹ thuật viên qua giao diện.
+
+**Kết quả:** PASS – Bản clone có thể triển khai và chạy độc lập trong môi trường thử nghiệm đã cấu hình.
+
+### 11.6. Kiểm thử E2E phân công kỹ thuật viên và ghi log
+
+**Dữ liệu kiểm thử:**
+
+- Phiếu: `MM-DEMO-002`
+- Kỹ thuật viên được chọn trên giao diện: Nguyễn Văn An
+- Thao tác: Chọn kỹ thuật viên và xác nhận phân công
+
+**Kết quả trên giao diện:**
+
+- Hiển thị thông báo phân công thành công.
+- Trạng thái phiếu chuyển sang Đã phân công.
+
+**Kết quả truy vấn PostgreSQL:**
+
+| Trường | Giá trị |
+|---|---|
+| `ticket_code` | `MM-DEMO-002` |
+| `status` | `ASSIGNED` |
+| `from_technician_id` | `NULL` |
+| `to_technician_id` | `1` |
+| `changed_by` | `1` |
+| `changed_at` | `2026-11-13 06:53:41.743863` |
+
+Bảng `ticket_assignment_log` ghi nhận một bản ghi phân công cho phiếu được kiểm thử.
+
+**Kết quả:** PASS – Thao tác phân công qua giao diện được lưu vào PostgreSQL và tạo lịch sử phân công.
+
+### 11.7. Kiểm thử tự động
+
+Chạy lệnh `npm test` trên máy macOS tại thư mục bản clone.
+
+| Chỉ số | Kết quả |
+|---|---:|
+| Tổng số Unit Test | 35 |
+| PASS | 35 |
+| FAIL | 0 |
+| SKIPPED | 0 |
+| CANCELLED | 0 |
+
+Các nhóm kiểm thử bao gồm:
+
+- Kiểm tra dữ liệu phiếu và hợp đồng API.
+- Gợi ý, phân công và đổi kỹ thuật viên.
+- Cập nhật trạng thái phiếu.
+- Tạo, đổi và hủy lịch hẹn.
+- Phát hiện lịch hẹn trùng.
+- Xử lý dữ liệu không hợp lệ, giá trị biên và mã lỗi HTTP.
+
+**Kết quả:** PASS – 35/35 bài kiểm thử tự động thành công.
+
+Lưu ý: Unit Test được thực hiện trên máy macOS, không chạy bên trong container API.
+
+### 11.8. Giới hạn kiểm chứng
+
+- Chưa kiểm chứng triển khai trên máy chủ production hoặc dịch vụ cloud.
+- Chưa hoàn thiện đăng nhập và phân quyền theo vai trò.
+- Chưa xác nhận đầy đủ mọi luồng giao diện, đặc biệt là các chức năng ngoài luồng phân công đã kiểm thử.
+- Dữ liệu sử dụng là dữ liệu demo.
+- Các kết quả kiểm thử chỉ áp dụng cho phiên bản mã nguồn và môi trường đã kiểm tra.
+
+### 11.9. Tổng kết BT3
+
+Các hạng mục đã kiểm chứng thành công:
+
+- Triển khai Docker Compose.
+- Tự động chạy Migration và Seed.
+- Healthcheck cho PostgreSQL và API.
+- Khởi chạy ứng dụng trên bản clone sạch.
+- Kiểm thử phân công kỹ thuật viên và ghi log trong database.
+- Chạy 35/35 Unit Test thành công.
+
+**Kết luận:** Module Smart CRM – L4 đáp ứng các trường hợp kiểm thử triển khai và vận hành cục bộ đã thực hiện trong BT3. Các giới hạn về bảo mật, production và những luồng chưa kiểm chứng tiếp tục được ghi nhận để phát triển sau.
